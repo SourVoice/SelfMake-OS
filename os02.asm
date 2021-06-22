@@ -31,11 +31,11 @@ entry:
     MOV     DS,AX
     MOV     es,AX
 
-    MOV     SI,MSG
+    MOV     SI,MSG          ;源变址寄存器写入MSG地址
 putloop:
     MOV     al,[si]         ;[SI]表示内存的地址，al寄存器填入了一个地址
     add     si,1
-    cmp     al,0
+    cmp     al,0            ;累加寄存器地位为零进入下面执行
 
     je      fin
     MOV     AH,0x0e         ;显示文字
