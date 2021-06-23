@@ -92,3 +92,7 @@
         RESB    4600
         db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
         RESB    1469432
+
+
+;有关label:error
+;这里没有尝试过读盘错误是怎么个情况,但是error部分也应该送入si处调用bios 的0x13在显示器打印
