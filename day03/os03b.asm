@@ -1,5 +1,5 @@
 ;开始写入装载区（IPL）
-;全18扇区装载区
+;第一个扇面装载区,循环+报错处理
 ;hello-os
 ;Tab = 4
     ORG     0x7c00              ;程序加载至0x7c00处(程序指该计算机boot程序)
@@ -51,8 +51,8 @@
                                     ;没错误AH＝０，有错误则错误号码存入AH,
         jnc     succeed
         add     si,1
-        cmp     si,5
-        jae     error               ;si>=5停止读盘
+        cmp     si,5                ;将判断结果存入寄存器(CF,ZF,OF,PF),CF:carry flag
+        jae     error               ;si>=5,跳至error(jump if above or equal),该指令借助CF寄存器判断
 
         MOV     AH,0x00
         MOV     DL,0X00
