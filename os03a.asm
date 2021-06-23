@@ -31,7 +31,7 @@
         MOV     sp,0x7c00            
         MOV     DS,AX
         MOV     es,AX
-        MOV     SI,MSG          
+        MOV     SI,MSG
 
         MOV     AX,0x0820           ;软盘数据装载到内存的地址
         MOV     ES,AX               ;地址给到ES(段寄存器，辅助地址),ES存储地址0x0820

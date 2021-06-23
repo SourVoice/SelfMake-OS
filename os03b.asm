@@ -32,15 +32,13 @@
         MOV     sp,0x7c00       
         MOV     DS,AX
         MOV     es,AX
-
-        MOV     SI,MSG          
-    ;读盘(全18-1扇区)
+    ;读盘循环试错
         MOV     AX,0x0820          
         MOV     ES,AX               
         MOV     CH,0                
         MOV     DH,0                
         MOV     CL,2                
-    readloop:
+
         MOV     si,0                ;si记录启动次数
     retry:
         MOV     AH,0x02             ;读盘
@@ -51,22 +49,14 @@
         MOV     DL,0x00             ;驱动器号(指定该驱动读取软盘)
         INT     0x13                ;调用磁盘BIOS，该函数返回一个进位标识(CF)到AH
                                     ;没错误AH＝０，有错误则错误号码存入AH,
-        jnc     next                ;该扇区无错误读取下一扇区
-        add     si,1                ;下面为出错后的循环判断
-        cmp     si,5                ;将判断结果存入寄存器(CF,ZF,OF,PF),CF:carry flag
-        jae     error               ;si>=5,跳至error(jump if above or equal),该指令借助CF寄存器判断
-        MOV     AH,0x00             ;si<5,重置驱动
-        MOV     DL,0x00             ;选定A驱动
-        INT     0x13                ;重置驱动器(AH=0x00,DL=0x00,0x13函数),物理复位
+        jnc     succeed
+        add     si,1
+        cmp     si,5
+        jac     error               ;si>=5停止读盘
+        MOV     AH,0x00
+        MOV     DL,0X00
+        INT     0X13                ;驱动重置
         jmp     retry               ;jump if carry，进位跳转指令
-    next:
-        MOV     AX,ES               ;扇区读取成功后,内存地址向后移0x200 == MOV ex,512
-        add     ax,0x0020           ;ES*16 = 512, 0x0020 = 512/16
-        MOV     BX,AX
-                                    ;上面这三个指令用于设定下一个扇区的读盘范围
-        add     CL,1                ;cl用于记录扇区
-        cmp     CL,18               
-        jbe     readloop            ;cl<=18则继续写(jump if below or equal)
 
     putloop:
         MOV     al,[si]         
@@ -81,18 +71,24 @@
     fin:
         HLT
         jmp     fin
+    error:
+        DB      0x0a,0x0a,0x0a
+        DB      "READ ERROR"
+        jmp     fin
+    succeed:
+        MOV     si,MSG
+        jump    putloop
     MSG:
         DB      0x0a,0x0a
-        db      "hello,world"
-        db      0x0a
-        db      0
-;判断终止启动区
-    RESB    510-($-$$)          ;软盘510字节后面为两个固定值，写道这里停住|0x7c00~0x7dff(511字节)用于启动区
-    db      0x55,0xaa           ;规定第一个扇区（集启动扇区）最后两个字节为0x55 aa，读取到该字节后计算机认为前面一个扇区为boot启动区
-
-error:
-    DB      0x0a,0x0a,0x0a
-    DB      "READ ERROR"
-succeed:
-    MOV     si,MSG
-    jump    MSG
+        DB      "READ SUCCEED"
+        db      0x0a,0x0a
+        DB      "hello world"
+        DB      0x0a
+        DB      0
+    ;判断终止启动区
+        RESB    510-($-$$)          
+        db      0x55,0xaa           
+        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
+        RESB    4600
+        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
+        RESB    1469432
