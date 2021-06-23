@@ -49,7 +49,7 @@
         MOV     DL,0x00             ;驱动器号(指定该驱动读取软盘)
         INT     0x13                ;调用磁盘BIOS，该函数返回一个进位标识(CF)到AH
                                     ;没错误AH＝０，有错误则错误号码存入AH,
-        jnc     succeed
+        jnc     success
         add     si,1
         cmp     si,5                ;将判断结果存入寄存器(CF,ZF,OF,PF),CF:carry flag
         jae     error               ;si>=5,跳至error(jump if above or equal),该指令借助CF寄存器判断
@@ -76,7 +76,7 @@
         DB      0x0a,0x0a,0x0a
         DB      "READ ERROR"
         jmp     fin
-    succeed:
+    success:
         MOV     si,MSG
         jmp    putloop
     MSG:
