@@ -52,7 +52,7 @@
         jnc     succeed
         add     si,1
         cmp     si,5
-        jac     error               ;si>=5Õ£÷π∂¡≈Ã
+        jae     error               ;si>=5Õ£÷π∂¡≈Ã
         MOV     AH,0x00
         MOV     DL,0X00
         INT     0X13                ;«˝∂Ø÷ÿ÷√
@@ -77,7 +77,7 @@
         jmp     fin
     succeed:
         MOV     si,MSG
-        jump    putloop
+        jmp    putloop
     MSG:
         DB      0x0a,0x0a
         DB      "READ SUCCEED"
