@@ -57,7 +57,7 @@
         MOV     AH,0x00
         MOV     DL,0X00
         INT     0X13                ;重置驱动器(AH=0x00,DL=0x00,0x13函数),物理复位
-        jmp     retry               ;jump if carry，进位跳转指令
+        jmp     retry               ;jump if carry，进位跳转指令(BIOS 0x13h函数返回CF寄存器)
 
     putloop:
         MOV     al,[si]         
