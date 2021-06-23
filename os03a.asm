@@ -60,20 +60,6 @@
     fin:
         HLT                     ; »√CPUÕ£÷π£¨µ»¥˝÷∏¡Ó
         jmp     fin
-    MSG:
-        DB      0x0a,0x0a
-        DB      "hello world"
-        DB      0x0a
-        DB      0
-
-
-    ;≈–∂œ÷’÷π∆Ù∂Ø«¯
-        RESB    510-($-$$)          
-        db      0x55,0xaa           
-        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
-        RESB    4600
-        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
-        RESB    1469432
 ;∂¡≈Ã¥ÌŒÛ¥Ú”°
     ERROR:
         DB      0x0a,0x0a
@@ -82,4 +68,16 @@
         DB      "XXXXXXXXXXX"
         DB      0x0a
         DB      0
-        jmp     fin
+        jmp     fin             ;error∫ÛÕ£ª˙
+    MSG:
+        DB      0x0a,0x0a
+        DB      "hello world"
+        DB      0x0a
+        DB      0
+    ;≈–∂œ÷’÷π∆Ù∂Ø«¯
+        RESB    510-($-$$)          
+        db      0x55,0xaa           
+        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
+        RESB    4600
+        db      0xf0,0xff,0xff,0x00,0x00,0x00,0x00,0x00
+        RESB    1469432
