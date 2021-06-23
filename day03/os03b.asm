@@ -53,9 +53,10 @@
         add     si,1
         cmp     si,5
         jae     error               ;si>=5停止读盘
+
         MOV     AH,0x00
         MOV     DL,0X00
-        INT     0X13                ;驱动重置
+        INT     0X13                ;重置驱动器(AH=0x00,DL=0x00,0x13函数),物理复位
         jmp     retry               ;jump if carry，进位跳转指令
 
     putloop:
