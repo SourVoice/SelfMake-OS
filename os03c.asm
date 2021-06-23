@@ -1,7 +1,8 @@
 ;开始写入装载区（IPL）
-;第一扇区的程序装载+读盘试错
+;读入反面
 ;hello-os
 ;Tab = 4
+    cyls equ 10
     ORG     0x7c00              ;程序加载至0x7c00处(程序指该计算机boot程序)
     jmp     entry               ;进入程序
                                 ;同    0s01.asm对比可知，0xeb,0x4e = jmp entry,两个地址对应
@@ -45,23 +46,25 @@ putloop:
     INT     0x10            ;调用显卡BIOS
     jmp     putloop
 fin:
-    HLT                     ; 让CPU停止，等待指令
+    HLT
     jmp     fin
 MSG:
     DB      0x0a,0x0a
-    db      "hello world"
+    db      "WORONG READ"
     db      0x0a
     db      0
 ;判断终止启动区
     RESB    510-($-$$)          ;软盘510字节后面为两个固定值，写道这里停住|0x7c00~0x7dff(511字节)用于启动区
     db      0x55,0xaa           ;规定第一个扇区（集启动扇区）最后两个字节为0x55 aa，读取到该字节后计算机认为前面一个扇区为boot启动区
-;512 * 2字节,第二个扇区(C0-H0-S2)
+;读盘(全18-1扇区)
     MOV     AX,0x0820           ;软盘数据装载到内存的地址
     MOV     ES,AX               ;地址给到ES(段寄存器，辅助地址),ES存储地址0x0820
     MOV     CH,0                ;柱面号，0
     MOV     DH,0                ;磁头号，0(正面磁头)
     MOV     CL,2                ;扇区号，2
     MOV     si,0                ;记录启动失败次数寄存器
+readloop:
+    MOV     si,0
 retry:
     MOV     AH,0x02             ;读盘
     MOV     AL,1                ;处理对象的扇区数
@@ -71,11 +74,27 @@ retry:
     MOV     DL,0x00             ;驱动器号(指定该驱动读取软盘)
     INT     0x13                ;调用磁盘BIOS，该函数返回一个进位标识(CF)到AH
                                 ;没错误AH＝０，有错误则错误号码存入ＡＨ,
-    jnc     fin                 ;jump if not carry
+    jnc     next                ;该扇区无错误读取下一扇区
     add     si,1                ;下面为出错后的循环判断
     cmp     si,5                ;将判断结果存入寄存器(CF,ZF,OF,PF),CF:carry flag
     jae     error               ;si>=5,跳至error(jump if above or equal),该指令借助CF寄存器判断
     MOV     AH,0x00             ;si<5,重置驱动
-    MOV     DL,0x00             ;A驱动
+    MOV     DL,0x00             ;选定A驱动
     INT     0x13                ;重置驱动器(AH=0x00,DL=0x00,0x13函数),物理复位
     jmp     retry               ;jump if carry，进位跳转指令
+next:
+    MOV     AX,ES               ;扇区读取成功后,内存地址向后移0x200 == MOV ex,512
+    add     ax,0x0020           ;ES*16 = 512, 0x0020 = 512/16
+    MOV     BX,AX
+                                ;上面这三个指令用于设定下一个扇区的读盘范围
+    add     CL,1                ;cl用于记录扇区
+    cmp     CL,18               
+    jbe     readloop            ;cl<=18则继续写(jump if below or equal)
+    MOV     CL,1
+    add     DH,1
+    cmp     DH,2
+    jb      readloop            ;DH<2开始写反面(jump if blow)
+    MOV     DH,0
+    add     CH,1
+    cmp     CH,cyls
+    jb      readloop
