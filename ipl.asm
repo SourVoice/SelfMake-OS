@@ -70,9 +70,14 @@
         MOV     DH,0                
         ADD     CH,1               
         cmp     CH,CYLS             
-        jb      readloop            
+        jb      readloop
+    success:
+        DB      0x0a,0x0a
+        db      "ENTER the OS"
+        db      0x0a
+        db      0
         ; begin to execute os from boot sector
-        mov     [0xff0], ch         ; [0xff0] = CYLS
+        mov     [0xff0], ch         ; [0x0ff0] = CYLS,将CYLS的值写道0x0ff0,这个部分内存没有使用,用于存放参数啥的
         jmp     0xc200              ;ipl程序写好了,跳到0xc200开始写内核
     error:
         MOV     si,MSG
