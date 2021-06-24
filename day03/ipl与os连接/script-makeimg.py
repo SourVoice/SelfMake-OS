@@ -1,3 +1,7 @@
+"""
+用于连接os.bin和ipl.bin的脚本
+"""
+
 import os
 import sys
 
