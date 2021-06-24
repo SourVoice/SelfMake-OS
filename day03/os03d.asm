@@ -65,10 +65,11 @@
         jbe     readloop      
         ;反面
         MOV     CL,1                ;扇区重置
-        ADD     DH,1                ;切换磁针
+        ADD     DH,1                ;面数计数器(这里用磁针)+1
         cmp     DH,2                
         jb      readloop            ;DH<2,jump
-        MOV     DH,0                ;磁针置0
+        ;读取柱面
+        MOV     DH,0                ;重置成正面
         ADD     CH,1                
         cmp     CH,CYLS             ;CYLS宏10,10个柱面
         jb      readloop            ;CH < CYLS,jump
