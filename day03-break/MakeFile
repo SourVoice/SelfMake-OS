@@ -1,0 +1,13 @@
+gcc -nostdlib -o -S bootpack bootpack.c
+-nostdlib: 不链接系统标准启动文件和标准库文件
+# -nostartfiles :不链接系统标准启动文件，而标准库文件仍然正常使用
+-o : 输出到file
+-S : 只编译
+-c : 编译+汇编=>obj,生成目标文件
+	-m32:指定32位格式生成
+nasm nasm_func.asm -f coff -o nasm_func.obj
+-f : 设定输出格式 
+	coff: 输出32格式,-o输出到文件 COFF (i386) (DJGPP, some Unix variants)
+	win32: Microsoft extended COFF for Win32 (i386)
+gcc	[file1] [file2]... -o 
+-o : 输出连接文件
