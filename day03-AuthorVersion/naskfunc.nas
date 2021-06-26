@@ -19,5 +19,3 @@ _write_mem8:                            ;write_meme8(int addresss, int data),CÖÐ
         RET
 
 
-
-
