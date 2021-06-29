@@ -25,3 +25,4 @@
     25 0000C21B B4 02                                   MOV     AH,0x02
     26 0000C21D CD 16                                   INT     0x16                
     27 0000C21F A2 0FF1                                 MOV     [LEDS],al           
+    28 0000C222                                         
