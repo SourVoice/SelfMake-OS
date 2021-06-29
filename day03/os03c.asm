@@ -58,7 +58,7 @@
     next:
         MOV     AX,ES               ;扇区读取成功后,内存地址向后移0x200 == MOV ex,512
         add     ax,0x0020           ;ES*16 = 512, 0x0020 = 512/16
-        MOV     BX,AX               ;上面这三个指令用于设定下一个扇区的读盘范围
+        MOV     ES,AX               ;上面这三个指令用于设定下一个扇区的读盘范围,ES不能进行操作,所以间接利用AX进行偏移
         add     CL,1                ;cl用于记录扇区
         cmp     CL,18               
         jbe     readloop            ;cl<=18则继续读取(jump if below or equal)

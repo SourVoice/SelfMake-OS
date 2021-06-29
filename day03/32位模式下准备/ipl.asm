@@ -57,7 +57,7 @@
     next:
         MOV     AX,ES              
         add     ax,0x0020           
-        MOV     BX,AX               
+        MOV     ES,AX               
         add     CL,1                
         cmp     CL,18              
         jbe     readloop      
