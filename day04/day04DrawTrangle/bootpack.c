@@ -14,7 +14,7 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
-void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1); /*参数: vram地址,大小,色号,位置x,位置y,*/
 
 void HariMain(void)
 {
@@ -45,7 +45,7 @@ void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, i
     {
         for (x = x0; x <= x1; x++)
         {
-            vram[y * xsize + x] = c;
+            vram[y * xsize + x] = c; /*色号给到指定vram处*/
         }
     }
     return;
