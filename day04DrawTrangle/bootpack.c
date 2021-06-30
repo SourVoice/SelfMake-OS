@@ -14,7 +14,7 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
-void boxfill8(char *p, int port, int, int height, int width, int pixivX, int pixivY);
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 
 void HariMain(void)
 {
@@ -37,6 +37,15 @@ void HariMain(void)
     for (;;)
         io_hlt(); /*执行汇编中的停机函数*/
 }
+
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
+{
+    int x, y;
+    for ()
+    {
+    }
+}
+
 /*初始化调色板*/
 void init_palette(void)
 {
