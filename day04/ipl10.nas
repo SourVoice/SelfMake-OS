@@ -57,7 +57,7 @@
     next:
         MOV     AX,ES              
         add     ax,0x0020           
-        MOV     BX,AX               
+        MOV     ES,AX               
         add     CL,1                
         cmp     CL,18              
         jbe     readloop      
@@ -100,5 +100,5 @@
         db      0x0a
         db      0
         ;判断终止启动区
-        RESB    510-($-$$)          
+        RESB    510-($-$$)          ;改用nask进行编译,这里510-($-$$)改为510-$          
         db      0x55,0xaa           
