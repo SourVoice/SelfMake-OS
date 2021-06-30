@@ -1,0 +1,28 @@
+     1 00000000                                 ;os
+     2 00000000                                 ;TAB=4
+     3 00000000                                 ;BIOS-INFO,这部分内容放到内存0x0ff0处,作为操作系统的设置
+     4 00000000                                 
+     5 00000000                                 ;根据函数入口地址调节32位模式,这TM都没讲保护模式的进入，我都没法用gcc连接目标文件
+     6  = 00280000                              BOTPAK	EQU		0x00280000		; 加载bootpack
+     7  = 00100000                              DSKCAC	EQU		0x00100000		; 磁盘缓存的位置
+     8  = 00008000                              DSKCAC0	EQU		0x00008000		; 磁盘缓存的位置（实模式）
+     9 00000000                                 ;BIOS设定
+    10  = 00000FF0                              CYLS    equ     0x0ff0
+    11  = 00000FF1                              LEDS    equ     0x0ff1
+    12  = 00000FF2                              VMODE   equ     0x0ff2
+    13  = 00000FF4                              SCRNX   equ     0x0ff4              
+    14  = 00000FF6                              SCRNY   equ     0x0ff6
+    15  = 00000FF8                              VRAM    equ     0x0ff8              
+    16 00000000                                 ;内核主体
+    17                                                  ORG     0xc200              
+    18 0000C200 B0 13                                   MOV     AL,0x13             
+    19 0000C202 B4 00                                   MOV     AH,0x00
+    20 0000C204 CD 10                                   INT     0x10
+    21 0000C206 C7 06 0FF4 0140                         MOV     WORD [SCRNX],320
+    22 0000C20C C7 06 0FF6 00C8                         MOV     WORD [SCRNY],200
+    23 0000C212 66 C7 06 0FF8 000A0000                  MOV     DWORD [VRAM],0x000a0000
+    24 0000C21B                                         ;BIOS获取键盘状态(取得键盘上各种LED指示灯的状态)
+    25 0000C21B B4 02                                   MOV     AH,0x02
+    26 0000C21D CD 16                                   INT     0x16                
+    27 0000C21F A2 0FF1                                 MOV     [LEDS],al           
+    28 0000C222                                 bootpack:
