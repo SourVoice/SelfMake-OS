@@ -24,7 +24,7 @@ void HariMain(void)
     init_palette(); /*调色板*/
 
     p = (char *)0xa0000;
-    boxfill8(p, 320, COL8_ff0000, 20, 20, 120, 120);
+    boxfill8(p, 320, COL8_ff0000, 20, 20, 120, 120); /*调用显卡绘制矩形*/
     boxfill8(p, 320, COL8_00ff00, 70, 50, 170, 150);
     boxfill8(p, 320, COL8_0000ff, 120, 80, 220, 180);
 
@@ -41,9 +41,14 @@ void HariMain(void)
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
 {
     int x, y;
-    for ()
+    for (y = y0; y <= y1; y++)
     {
+        for (x = x0; x <= x1; x++)
+        {
+            vram[y * xsize + x] = c;
+        }
     }
+    return;
 }
 
 /*初始化调色板*/
