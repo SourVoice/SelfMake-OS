@@ -14,23 +14,25 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
+void io_hlt(void);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1); /*参数: vram地址,大小,色号,位置x,位置y,*/
 void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
+void io_cli(void);
+void io_out8(int port, int data);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void HariMain(void)
 {
-    int i;
     init_palette(); /*调色板*/
     int xsize, ysize;
     xsize = 320;
     ysize = 200;
     char *vram;
-    vram = 0xa0000;
+    vram = (char *)0xa0000;
     boxfill8(vram, xsize, COL8_ffffff, 20, 20, 120, 120);
-    boxfill8(vram, xsize, COL8_ff0000, 70, 100, 170, 200);
-    boxfill8(vram, xsize, COL8_848484, 120, 150, 220, 250);
+    boxfill8(vram, xsize, COL8_ff0000, 40, 40, 140, 140);
+    boxfill8(vram, xsize, COL8_848484, 60, 60, 160, 160);
 
     // boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     boxfill8(vram, xsize, COL8_c6c6c6, 0, ysize - 28, xsize - 1, ysize - 28);
