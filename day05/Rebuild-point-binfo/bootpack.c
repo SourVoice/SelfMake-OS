@@ -14,38 +14,54 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
+void io_hlt(void);
+void init_palette(void);
+void set_palette(int start, int end, unsigned char *rgb);
+int io_load_eflags(void);
+void io_store_eflags(int eflags);
+void io_cli(void);
+void io_out8(int port, int data);
+void init_screen(unsigned char *vram, int xsize, int ysize);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1); /*参数: vram地址,大小,色号,位置x,位置y,*/
 
 void HariMain(void)
 {
-    int i;
     init_palette(); /*调色板*/
-    char *p;        /*指针 默认p指向一个字节,指针变量本身用四个字节存储*/
-    int xsize, ysize;
-    xsize = 320;
-    ysize = 200;
+
     char *vram;
+    int xsize, ysize;
+    short *binfo_scrnx, *binfo_scrny;
+    int *binfo_vram;
+    binfo_scrnx = (short *)0x0ff4; /*运用指针从内存中取binfo(asmhead)里定义的信息*/
+    binfo_scrny = (short *)0x0ff6;
+    binfo_vram = (int *)0x0ff8;
+    xsize = *binfo_scrnx;
+    ysize = *binfo_scrny;
+    vram = (char *)*binfo_vram;
 
-    p = (char *)0xa0000;
-    boxfill8(p, 320, COL8_ff0000, 20, 20, 120, 120); /*调用显卡绘制矩形*/
-    boxfill8(p, 320, COL8_00ff00, 70, 50, 170, 150);
-    boxfill8(p, 320, COL8_0000ff, 120, 80, 220, 180);
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_c6c6c6, 0, ysize - 28, xsize - 1, ysize - 28);
-    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 27);
-    boxfill8(vram, xsize, COL8_c6c6c6, 0, 0, xsize - 1, ysize - 1);
-
-    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_848484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_848484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-
+    init_screen(vram, xsize, ysize); /*屏幕部分封装函数*/
     for (;;)
         io_hlt(); /*执行汇编中的停机函数*/
+}
+void init_screen(unsigned char *vram, int xsize, int ysize)
+{
+    boxfill8(vram, xsize, COL8_ffffff, 20, 20, 120, 120);
+    boxfill8(vram, xsize, COL8_ff0000, 40, 40, 140, 140);
+    boxfill8(vram, xsize, COL8_848484, 60, 60, 160, 160);
+
+    // boxfill8(vram, xsize, COL8_840084, 0, 0, xsize - 1, ysize - 29);
+
+    boxfill8(vram, xsize, COL8_ffffff, 3, ysize - 24, 59, ysize - 24);
+    boxfill8(vram, xsize, COL8_ffffff, 2, ysize - 24, 2, ysize - 4);
+    boxfill8(vram, xsize, COL8_848484, 3, ysize - 4, 59, ysize - 4);
+    boxfill8(vram, xsize, COL8_848484, 59, ysize - 23, 59, ysize - 5);
+    boxfill8(vram, xsize, COL8_000000, 2, ysize - 3, 59, ysize - 3);
+    boxfill8(vram, xsize, COL8_000000, 60, ysize - 24, 60, ysize - 3);
+
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize - 4, ysize - 24);
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize - 3);
+    boxfill8(vram, xsize, COL8_ffffff, xsize - 47, ysize - 3, xsize - 4, ysize - 3);
+    boxfill8(vram, xsize, COL8_ffffff, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
 }
 
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
