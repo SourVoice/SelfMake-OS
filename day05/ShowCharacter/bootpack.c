@@ -34,7 +34,7 @@ struct BOOTINFO
 static char font_A[16] = {
     0x00, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
     0x24, 0x7e, 0x42, 0x42, 0xe7, 0x00, 0x00}; /*A字母的像素点阵*/
-void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
+void putfont8(char *vram, int xsize, char color, int x, int y, char *font);
 void HariMain(void)
 {
     init_palette(); /*调色板*/
@@ -55,9 +55,8 @@ void init_screen(unsigned char *vram, int xsize, int ysize)
     // boxfill8(vram, xsize, COL8_ffffff, 20, 20, 120, 120);
     // boxfill8(vram, xsize, COL8_ff0000, 40, 40, 140, 140);
     // boxfill8(vram, xsize, COL8_848484, 60, 60, 160, 160);
-    putfont8(vram, xsize, 1, 1, COL8_00ffff, font_A);
 
-    boxfill8(vram, xsize, COL8_848484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_0000ff, 0, 0, xsize - 1, ysize - 29);
 
     boxfill8(vram, xsize, COL8_ffffff, 3, ysize - 24, 59, ysize - 24);
     boxfill8(vram, xsize, COL8_ffffff, 2, ysize - 24, 2, ysize - 4);
@@ -70,33 +69,38 @@ void init_screen(unsigned char *vram, int xsize, int ysize)
     boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize - 3);
     boxfill8(vram, xsize, COL8_ffffff, xsize - 47, ysize - 3, xsize - 4, ysize - 3);
     boxfill8(vram, xsize, COL8_ffffff, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
+
+    putfont8(vram, xsize, COL8_00ffff, 2, 2, font_A);   /*文字在屏幕显示后再显示*/
+    putfont8(vram, xsize, COL8_00ffff, 12, 12, font_A); /*文字在屏幕显示后再显示*/
+    putfont8(vram, xsize, COL8_00ffff, 22, 22, font_A); /*文字在屏幕显示后再显示*/
+    putfont8(vram, xsize, COL8_00ffff, 32, 32, font_A); /*文字在屏幕显示后再显示*/
 }
 /*显示字体*/
-void putfont8(char *vram, int xsize, int x, int y, char c, char *font)
+void putfont8(char *vram, int xsize, char color, int x, int y, char *font)
 {
     int i;
     char d;
     char *p;
-    p = vram + (y + i) * xsize + x;
     for (i = 0; i < 16; i++)
     {
+        p = vram + (y + i) * xsize + x;
         d = font[i];
         if ((d & 0x80) != 0)
-            *(p + 0) = c;
+            *(p + 0) = color;
         if ((d & 0x40) != 0)
-            *(p + 1) = c;
+            *(p + 1) = color;
         if ((d & 0x20) != 0)
-            *(p + 2) = c;
+            *(p + 2) = color;
         if ((d & 0x10) != 0)
-            *(p + 3) = c;
+            *(p + 3) = color;
         if ((d & 0x08) != 0)
-            *(p + 4) = c;
+            *(p + 4) = color;
         if ((d & 0x04) != 0)
-            *(p + 5) = c;
+            *(p + 5) = color;
         if ((d & 0x02) != 0)
-            *(p + 6) = c;
+            *(p + 6) = color;
         if ((d & 0x01) != 0)
-            *(p + 7) = c;
+            *(p + 7) = color;
     }
     return;
 }

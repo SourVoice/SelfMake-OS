@@ -23,25 +23,14 @@ _font_A:
 _HariMain:
 	pushl	%ebp
 	movl	%esp, %ebp
-	pushl	%edi
-	pushl	%esi
-	pushl	%ebx
 	call	_init_palette
-	movl	4088, %esi
-	movswl	4084,%ebx
-	movswl	4086,%edi
-	pushl	$_font_A
-	pushl	$6
-	pushl	$1
-	pushl	$1
-	pushl	%ebx
-	pushl	%esi
-	call	_putfont8
-	pushl	%edi
-	pushl	%ebx
-	pushl	%esi
+	movswl	4086,%eax
+	movswl	4084,%edx
+	pushl	%eax
+	pushl	%edx
+	pushl	4088
 	call	_init_screen
-	addl	$36, %esp
+	addl	$12, %esp
 L2:
 	call	_io_hlt
 	jmp	L2
@@ -64,7 +53,7 @@ _init_screen:
 	pushl	%eax
 	pushl	$0
 	pushl	$0
-	pushl	$15
+	pushl	$4
 	pushl	12(%ebp)
 	pushl	8(%ebp)
 	call	_boxfill8
@@ -111,19 +100,18 @@ _init_screen:
 	pushl	12(%ebp)
 	pushl	8(%ebp)
 	call	_boxfill8
-	movl	16(%ebp), %eax
-	subl	$3, %eax
-	pushl	%eax
-	movl	%eax, -20(%ebp)
+	movl	16(%ebp), %edi
+	subl	$3, %edi
+	pushl	%edi
 	pushl	$59
-	pushl	%eax
+	pushl	%edi
 	pushl	$2
 	pushl	$0
 	pushl	12(%ebp)
 	pushl	8(%ebp)
 	call	_boxfill8
 	addl	$56, %esp
-	pushl	-20(%ebp)
+	pushl	%edi
 	pushl	$60
 	pushl	%esi
 	pushl	$60
@@ -132,11 +120,12 @@ _init_screen:
 	pushl	8(%ebp)
 	call	_boxfill8
 	movl	12(%ebp), %ebx
-	movl	12(%ebp), %edi
+	movl	12(%ebp), %eax
 	pushl	%esi
-	subl	$4, %edi
+	subl	$4, %eax
 	subl	$47, %ebx
-	pushl	%edi
+	pushl	%eax
+	movl	%eax, -20(%ebp)
 	pushl	%esi
 	pushl	%ebx
 	pushl	$15
@@ -144,7 +133,7 @@ _init_screen:
 	pushl	8(%ebp)
 	call	_boxfill8
 	addl	$56, %esp
-	pushl	-20(%ebp)
+	pushl	%edi
 	pushl	%ebx
 	pushl	-16(%ebp)
 	pushl	%ebx
@@ -152,9 +141,9 @@ _init_screen:
 	pushl	12(%ebp)
 	pushl	8(%ebp)
 	call	_boxfill8
-	pushl	-20(%ebp)
 	pushl	%edi
 	pushl	-20(%ebp)
+	pushl	%edi
 	pushl	%ebx
 	pushl	$7
 	pushl	12(%ebp)
@@ -163,7 +152,7 @@ _init_screen:
 	movl	12(%ebp), %eax
 	addl	$56, %esp
 	subl	$3, %eax
-	pushl	-20(%ebp)
+	pushl	%edi
 	pushl	%eax
 	pushl	%esi
 	pushl	%eax
@@ -171,6 +160,36 @@ _init_screen:
 	pushl	12(%ebp)
 	pushl	8(%ebp)
 	call	_boxfill8
+	pushl	$_font_A
+	pushl	$2
+	pushl	$2
+	pushl	$6
+	pushl	12(%ebp)
+	pushl	8(%ebp)
+	call	_putfont8
+	addl	$52, %esp
+	pushl	$_font_A
+	pushl	$12
+	pushl	$12
+	pushl	$6
+	pushl	12(%ebp)
+	pushl	8(%ebp)
+	call	_putfont8
+	pushl	$_font_A
+	pushl	$22
+	pushl	$22
+	pushl	$6
+	pushl	12(%ebp)
+	pushl	8(%ebp)
+	call	_putfont8
+	addl	$48, %esp
+	pushl	$_font_A
+	pushl	$32
+	pushl	$32
+	pushl	$6
+	pushl	12(%ebp)
+	pushl	8(%ebp)
+	call	_putfont8
 	leal	-12(%ebp), %esp
 	popl	%ebx
 	popl	%esi
@@ -185,16 +204,17 @@ _putfont8:
 	movl	%esp, %ebp
 	pushl	%edi
 	pushl	%esi
-	movl	20(%ebp), %ecx
-	pushl	%ebx
-	addl	%esi, %ecx
-	movl	28(%ebp), %edi
-	imull	12(%ebp), %ecx
-	addl	8(%ebp), %ecx
-	movb	24(%ebp), %bl
 	xorl	%esi, %esi
-	addl	16(%ebp), %ecx
+	pushl	%ebx
+	movl	28(%ebp), %edi
+	movb	16(%ebp), %bl
 L19:
+	movl	24(%ebp), %eax
+	movl	20(%ebp), %edx
+	addl	%esi, %eax
+	imull	12(%ebp), %eax
+	addl	8(%ebp), %eax
+	leal	(%edx,%eax), %ecx
 	movb	(%esi,%edi), %dl
 	testb	%dl, %dl
 	jns	L11
@@ -423,8 +443,8 @@ L43:
 	.def	_io_cli;	.scl	2;	.type	32;	.endef
 	.def	_io_load_eflags;	.scl	2;	.type	32;	.endef
 	.def	_set_palette;	.scl	2;	.type	32;	.endef
+	.def	_putfont8;	.scl	2;	.type	32;	.endef
 	.def	_boxfill8;	.scl	2;	.type	32;	.endef
 	.def	_io_hlt;	.scl	2;	.type	32;	.endef
 	.def	_init_screen;	.scl	2;	.type	32;	.endef
-	.def	_putfont8;	.scl	2;	.type	32;	.endef
 	.def	_init_palette;	.scl	2;	.type	32;	.endef
