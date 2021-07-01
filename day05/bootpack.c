@@ -15,32 +15,41 @@
 #define COL8_008484 14
 #define COL8_848484 15
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1); /*参数: vram地址,大小,色号,位置x,位置y,*/
-//xsize for "how many pixivs in the each line", c for color, vram for the buffer in memory,
-//x0 for the left-top x and y0 the same, x1 for the right bottom x and y1 the same
+
 void HariMain(void)
 {
     int i;
-    char *p; /*指针 默认p指向一个字节,指针变量本身用四个字节存储*/
-
     init_palette(); /*调色板*/
+    char *p;        /*指针 默认p指向一个字节,指针变量本身用四个字节存储*/
+    int xsize, ysize;
+    xsize = 320;
+    ysize = 200;
+    char *vram;
 
     p = (char *)0xa0000;
     boxfill8(p, 320, COL8_ff0000, 20, 20, 120, 120); /*调用显卡绘制矩形*/
     boxfill8(p, 320, COL8_00ff00, 70, 50, 170, 150);
     boxfill8(p, 320, COL8_0000ff, 120, 80, 220, 180);
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_c6c6c6, 0, ysize - 28, xsize - 1, ysize - 28);
+    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 27);
+    boxfill8(vram, xsize, COL8_c6c6c6, 0, 0, xsize - 1, ysize - 1);
 
-    // for (i = 0xa0000; i <= 0xaffff; i++)
-    // {
-    //     p = (char *)i;
-    //     *p = i & 0x0f; //替换了func中的函数
-    //     // write_mem8(i, i & 0x0f); /*调用汇编_write_mem8([i],)    i & 0x0f  高四位全部置0,现已删除*/
-    // }
+    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_ffffff, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_848484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_848484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+
     for (;;)
         io_hlt(); /*执行汇编中的停机函数*/
 }
 
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
-{ //xsize for "how many pixivs in the each line", c for color, vram for the buffer in memory,x0 for the left-top x and y0 the same, x1 for the right bottom x and y1 the same
+{
     int x, y;
     for (y = y0; y <= y1; y++)
     {
