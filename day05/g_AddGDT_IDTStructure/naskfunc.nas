@@ -14,7 +14,7 @@ GLOBAL          _io_in8,_io_in16,_io_in32
 GLOBAL          _io_out8,_io_out16,_io_out32
 GLOBAL          _io_load_eflags,_io_store_eflags         
 GLOBAL          _boxfill8
-GLOBAL          _load_gdtr
+GLOBAL          _load_gdtr,_load_idtr
 [SECTION .text]
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
@@ -69,5 +69,13 @@ _io_store_eflags:
         push    eax
         popfd
         RET        
-_load_gdtr:
-        
+_load_gdtr:                   ;void load_gdtr(int limit, int addr),写入gdtr寄存器的方式为从指定地址读取6个字节(48位)
+        mov     ax,[esp+4]    ;limit
+        mov     [esp+6],ax    ;(最初两个字节)低16位是段上限
+        lgdt    [esp+6]
+        RET
+_load_idtr:                     ;void load_idtr(int limit, int addr)
+        mov     ax,[esp+4]
+        mov     [esp+6],ax
+        lidt    [esp+6]
+        RET
