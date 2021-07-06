@@ -63,7 +63,8 @@ struct GATEDescriptor
 void init_gdtidt();
 void set_SegDesc(struct SegmentDescriptor *sd, unsigned int limit, int base, int ar);
 void set_GATEDesc(struct GATE_Descriptor *gd, int offset, int selector, int ar);
-void load_gdtr(int add);
+void load_gdtr(int limit, int addr);
+void load_idtr(int limit, int addr);
 void HariMain(void)
 {
     init_palette(); /*调色板*/
@@ -278,7 +279,7 @@ void init_gdtidt()
     {
         set_GATEDesc(idt + i, 0, 0, 0);
     }
-    load_gdtr(0x7ff, 0x0026f800);
+    load_idtr(0x7ff, 0x0026f800);
     return;
 }
 /*gdt设定*/
