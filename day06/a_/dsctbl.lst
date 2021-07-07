@@ -1,0 +1,106 @@
+     1 00000000                                 [FORMAT "WCOFF"]
+     2 00000000                                 [INSTRSET "i486p"]
+     3 00000000                                 [OPTIMIZE 1]
+     4 00000000                                 [OPTION 1]
+     5 00000000                                 [BITS 32]
+     6 00000000                                 	EXTERN	_load_gdtr
+     7 00000000                                 [FILE "dsctbl.c"]
+     8                                          [SECTION .text]
+     9 00000000                                 	GLOBAL	_HariMain
+    10 00000000                                 _HariMain:
+    11 00000000 55                              	PUSH	EBP
+    12 00000001 89 E5                           	MOV	EBP,ESP
+    13 00000003 5D                              	POP	EBP
+    14 00000004 EB 00                           	JMP	_init_gdtidt
+    15 00000006                                 	GLOBAL	_init_gdtidt
+    16 00000006                                 _init_gdtidt:
+    17 00000006 55                              	PUSH	EBP
+    18 00000007 89 E5                           	MOV	EBP,ESP
+    19 00000009 56                              	PUSH	ESI
+    20 0000000A 53                              	PUSH	EBX
+    21 0000000B BE 00270000                     	MOV	ESI,2555904
+    22 00000010 BB 00001FFF                     	MOV	EBX,8191
+    23 00000015                                 L7:
+    24 00000015 6A 00                           	PUSH	0
+    25 00000017 6A 00                           	PUSH	0
+    26 00000019 6A 00                           	PUSH	0
+    27 0000001B 56                              	PUSH	ESI
+    28 0000001C 83 C6 0A                        	ADD	ESI,10
+    29 0000001F E8 0000005B                     	CALL	_set_SegDesc
+    30 00000024 83 C4 10                        	ADD	ESP,16
+    31 00000027 4B                              	DEC	EBX
+    32 00000028 79 EB                           	JNS	L7
+    33 0000002A 68 00004096                     	PUSH	16534
+    34 0000002F 6A 00                           	PUSH	0
+    35 00000031 6A FF                           	PUSH	-1
+    36 00000033 68 0027000A                     	PUSH	2555914
+    37 00000038 E8 00000042                     	CALL	_set_SegDesc
+    38 0000003D 68 0000409A                     	PUSH	16538
+    39 00000042 68 00280000                     	PUSH	2621440
+    40 00000047 68 0007FFFF                     	PUSH	524287
+    41 0000004C 68 00270014                     	PUSH	2555924
+    42 00000051 E8 00000029                     	CALL	_set_SegDesc
+    43 00000056 83 C4 20                        	ADD	ESP,32
+    44 00000059 68 00270000                     	PUSH	2555904
+    45 0000005E 68 0000FFFF                     	PUSH	65535
+    46 00000063 E8 [00000000]                   	CALL	_load_gdtr
+    47 00000068 58                              	POP	EAX
+    48 00000069 5A                              	POP	EDX
+    49 0000006A                                 L8:
+    50 0000006A 6A 00                           	PUSH	0
+    51 0000006C 6A 00                           	PUSH	0
+    52 0000006E 6A 00                           	PUSH	0
+    53 00000070 68 0026F800                     	PUSH	2553856
+    54 00000075 E8 0000005B                     	CALL	_set_GATEDesc
+    55 0000007A 83 C4 10                        	ADD	ESP,16
+    56 0000007D EB EB                           	JMP	L8
+    57 0000007F                                 	GLOBAL	_set_SegDesc
+    58 0000007F                                 _set_SegDesc:
+    59 0000007F 55                              	PUSH	EBP
+    60 00000080 89 E5                           	MOV	EBP,ESP
+    61 00000082 56                              	PUSH	ESI
+    62 00000083 53                              	PUSH	EBX
+    63 00000084 8B 55 0C                        	MOV	EDX,DWORD [12+EBP]
+    64 00000087 8B 75 10                        	MOV	ESI,DWORD [16+EBP]
+    65 0000008A 8B 5D 08                        	MOV	EBX,DWORD [8+EBP]
+    66 0000008D 8B 4D 14                        	MOV	ECX,DWORD [20+EBP]
+    67 00000090 81 FA 000FFFFF                  	CMP	EDX,1048575
+    68 00000096 76 09                           	JBE	L14
+    69 00000098 C1 EA 0C                        	SHR	EDX,12
+    70 0000009B 81 C9 000FFFFF                  	OR	ECX,1048575
+    71 000000A1                                 L14:
+    72 000000A1 66 89 13                        	MOV	WORD [EBX],DX
+    73 000000A4 89 F0                           	MOV	EAX,ESI
+    74 000000A6 C1 F8 10                        	SAR	EAX,16
+    75 000000A9 88 4B 05                        	MOV	BYTE [5+EBX],CL
+    76 000000AC C1 F9 08                        	SAR	ECX,8
+    77 000000AF 88 43 04                        	MOV	BYTE [4+EBX],AL
+    78 000000B2 C1 EA 10                        	SHR	EDX,16
+    79 000000B5 89 C8                           	MOV	EAX,ECX
+    80 000000B7 66 25 00F0                      	AND	AX,240
+    81 000000BB 83 E2 0F                        	AND	EDX,15
+    82 000000BE 66 89 73 02                     	MOV	WORD [2+EBX],SI
+    83 000000C2 09 C2                           	OR	EDX,EAX
+    84 000000C4 66 89 53 06                     	MOV	WORD [6+EBX],DX
+    85 000000C8 89 F0                           	MOV	EAX,ESI
+    86 000000CA C1 E8 18                        	SHR	EAX,24
+    87 000000CD 66 89 43 08                     	MOV	WORD [8+EBX],AX
+    88 000000D1 5B                              	POP	EBX
+    89 000000D2 5E                              	POP	ESI
+    90 000000D3 5D                              	POP	EBP
+    91 000000D4 C3                              	RET
+    92 000000D5                                 	GLOBAL	_set_GATEDesc
+    93 000000D5                                 _set_GATEDesc:
+    94 000000D5 55                              	PUSH	EBP
+    95 000000D6 89 E5                           	MOV	EBP,ESP
+    96 000000D8 8B 55 08                        	MOV	EDX,DWORD [8+EBP]
+    97 000000DB 8B 4D 0C                        	MOV	ECX,DWORD [12+EBP]
+    98 000000DE 8B 45 10                        	MOV	EAX,DWORD [16+EBP]
+    99 000000E1 66 89 0A                        	MOV	WORD [EDX],CX
+   100 000000E4 66 89 42 02                     	MOV	WORD [2+EDX],AX
+   101 000000E8 8B 45 14                        	MOV	EAX,DWORD [20+EBP]
+   102 000000EB C1 F9 10                        	SAR	ECX,16
+   103 000000EE 88 42 05                        	MOV	BYTE [5+EDX],AL
+   104 000000F1 66 89 4A 06                     	MOV	WORD [6+EDX],CX
+   105 000000F5 5D                              	POP	EBP
+   106 000000F6 C3                              	RET
