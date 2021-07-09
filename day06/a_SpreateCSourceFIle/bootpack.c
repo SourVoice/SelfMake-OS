@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "bootpack.h"
-
 //font²¿·Ö
 static char font_A[16] = {
     0x00, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,

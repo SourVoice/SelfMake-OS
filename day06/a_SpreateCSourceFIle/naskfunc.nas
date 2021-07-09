@@ -14,7 +14,7 @@ GLOBAL          _io_in8,_io_in16,_io_in32
 GLOBAL          _io_out8,_io_out16,_io_out32
 GLOBAL          _io_load_eflags,_io_store_eflags         
 GLOBAL          _boxfill8
-GLOBAL          _load_gdtr
+GLOBAL          _load_gdtr,_load_idtr
 [SECTION .text]
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
