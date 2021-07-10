@@ -69,13 +69,20 @@ _io_store_eflags:
         push    eax
         popfd
         RET        
-_load_gdtr:                   ;void load_gdtr(int limit, int addr),写入gdtr寄存器的方式为从指定地址读取6个字节(48位)
-        mov     ax,[esp+4]    ;limit
-        mov     [esp+6],ax    ;(最初两个字节)低16位是段上限
-        lgdt    [esp+6]
+;有关GDT结构见https://www.cnblogs.com/pengfeiz/p/5785263.html
+
+_load_gdtr:                     ;void load_gdtr(int limit, int addr),写入gdtr寄存器的方式为从指定地址读取6个字节(48位)
+                                ;段上限表示段的字节数
+                                ;例如load_gdtr(0xffff,0x00270000)
+                                ;[esp+4]处为段的上限,0xffff写入,[esp+8]存放地址(addr,0x270000),此时写为ff ff 00 00      00 00 27 00 
+                                                                                                        |        |          |    
+        mov     ax,[esp+4]      ;limit,[esp+4]处为段的上限                                             esp      esp+4       esp+6
+        mov     [esp+6],ax      ;(最初两个字节)低16位是段上限,0xff00写到[esp+6]里重新排列成ff ff ff ff 00 00 27 00 
+        lgdt    [esp+6]         ;从指定位置读取六个字节(,读取[esp+6]就是ff ff 00 27 00 00 )赋给GDT寄存器`
         RET
 _load_idtr:                     ;void load_idtr(int limit, int addr)
         mov     ax,[esp+4]
         mov     [esp+6],ax
         lidt    [esp+6]
         RET
+; 
