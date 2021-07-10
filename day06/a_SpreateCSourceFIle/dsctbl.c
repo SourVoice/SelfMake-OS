@@ -26,7 +26,7 @@ void init_gdtidt()
     return;
 }
 /*gdt设定*/
-void set_SegDesc(struct SegmentDescriptor *sd, unsigned int limit, int base, int ar)
+void set_SegDesc(struct SegmentDescriptor *sd, unsigned int limit, int base, int ar) /*ar(access_right)的高四位是"拓展访问权限,ar低八位决定系统模式和应用模式,ar刻意作为16位使用"*/
 {
     if (limit > 0xfffff)
     {

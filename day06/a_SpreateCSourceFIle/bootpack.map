@@ -1,4 +1,4 @@
-text size :   2052(0x00804)
+text size :   2084(0x00824)
 data size :   4424(0x01148)
 bss  size :      0(0x00000)
 
@@ -24,14 +24,15 @@ bss  size :      0(0x00000)
 0x00000338 : _io_load_eflags
 0x0000033B : _io_store_eflags
 0x00000342 : _load_gdtr
-0x00000342 : (.text)
-0x00000342 : _HariStartup
-0x0000034B : _sprintf
-0x0000034B : (.text)
-0x0000035F : (.text)
-0x0000039B : _strtoul0
-0x0000046E : (.text)
-0x00000496 : _vsprintf
+0x00000352 : _load_idtr
+0x00000362 : (.text)
+0x00000362 : _HariStartup
+0x0000036B : _sprintf
+0x0000036B : (.text)
+0x0000037F : (.text)
+0x000003BB : _strtoul0
+0x0000048E : (.text)
+0x000004B6 : _vsprintf
 0x00000000 : (.data)
 0x00000000 : (.data)
 0x00000000 : (.data)

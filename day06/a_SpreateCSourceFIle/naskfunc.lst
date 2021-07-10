@@ -14,7 +14,7 @@
     14 00000000                                 GLOBAL          _io_out8,_io_out16,_io_out32
     15 00000000                                 GLOBAL          _io_load_eflags,_io_store_eflags         
     16 00000000                                 GLOBAL          _boxfill8
-    17 00000000                                 GLOBAL          _load_gdtr
+    17 00000000                                 GLOBAL          _load_gdtr,_load_idtr
     18                                          [SECTION .text]
     19 00000000                                 _io_hlt:                                ;void io_hlt(void),函数声明+定义
     20 00000000 F4                                      hlt
@@ -71,4 +71,12 @@
     70 0000005C 9D                                      popfd
     71 0000005D C3                                      RET        
     72 0000005E                                 _load_gdtr:
-    73 0000005E                                         
+    73 0000005E 66 8B 44 24 04                          mov     ax,[esp+4]
+    74 00000063 66 89 44 24 06                          mov     [esp+6],ax
+    75 00000068 0F 01 54 24 06                          lgdt    [esp+6]
+    76 0000006D C3                                      RET
+    77 0000006E                                 _load_idtr:
+    78 0000006E 66 8B 44 24 04                          mov     ax,[esp+4]
+    79 00000073 66 89 44 24 06                          mov     [esp+6],ax
+    80 00000078 0F 01 5C 24 06                          lidt    [esp+6]
+    81 0000007D C3                                      RET

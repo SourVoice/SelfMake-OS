@@ -5,7 +5,6 @@ struct BOOTINFO
     short scrnx, scrny;
     char *vram;
 };
-
 #define ADR_BOOTINFO 0x00000ff0
 /*naskfunc.nas汇编函数实现部分声明*/
 void io_hlt(void);
