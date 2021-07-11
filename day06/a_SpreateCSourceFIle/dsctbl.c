@@ -14,11 +14,11 @@ void init_gdtidt()
     set_SegDesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a); /*第二段512kb,地址0x280000,供bootpack.hrb使用*/
     load_gdtr(0xffff, 0x00270000);                        /**/
     /*IDT初始化*/
-    for (i = 0;;)
+    for (i = 0; i < 256; i++)
     {
         set_GATEDesc(idt + i, 0, 0, 0);
     }
-    load_gdtr(0x7ff, 0x0026f800);
+    load_idtr(0x7ff, 0x0026f800);
     return;
 }
 
