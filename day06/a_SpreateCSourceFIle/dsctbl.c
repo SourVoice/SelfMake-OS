@@ -1,8 +1,4 @@
 #include "bootpack.h"
-void HariMain(void)
-{
-    init_gdtidt();
-}
 /*≥ı ºªØgdt,idt*/
 void init_gdtidt()
 {

@@ -1,12 +1,4 @@
 #include "bootpack.h"
-void HariMain(void)
-{
-    struct BOOTINFO *binfo;
-    binfo = (struct BOOTINFO *)0x0ff0; /*指针binfo放入0x0ff0地址.*/
-
-    init_palette();
-    init_screen(binfo->vram, binfo->scrnx, binfo->scrny); /*屏幕部分封装函数*/
-}
 void init_screen(unsigned char *vram, int xsize, int ysize)
 {
     boxfill8(vram, xsize, COL8_000000, 0, 0, xsize - 1, ysize - 29); /*背景色*/
