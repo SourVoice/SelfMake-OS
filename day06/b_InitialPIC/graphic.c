@@ -1,28 +1,5 @@
+//屏幕绘制相关
 #include "bootpack.h"
-void HariMain(void)
-{
-    struct BOOTINFO *binfo;
-    binfo = (struct BOOTINFO *)0x0ff0; /*指针binfo放入0x0ff0地址.*/
-
-    init_palette();
-    init_screen(binfo->vram, binfo->scrnx, binfo->scrny); /*屏幕部分封装函数*/
-}
-void init_screen(unsigned char *vram, int xsize, int ysize)
-{
-    boxfill8(vram, xsize, COL8_000000, 0, 0, xsize - 1, ysize - 29); /*背景色*/
-
-    boxfill8(vram, xsize, COL8_ffffff, 3, ysize - 24, 59, ysize - 24);
-    boxfill8(vram, xsize, COL8_ffffff, 2, ysize - 24, 2, ysize - 4);
-    boxfill8(vram, xsize, COL8_848484, 3, ysize - 4, 59, ysize - 4);
-    boxfill8(vram, xsize, COL8_848484, 59, ysize - 23, 59, ysize - 5);
-    boxfill8(vram, xsize, COL8_000000, 2, ysize - 3, 59, ysize - 3);
-    boxfill8(vram, xsize, COL8_000000, 60, ysize - 24, 60, ysize - 3);
-
-    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize - 4, ysize - 24);
-    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize - 3);
-    boxfill8(vram, xsize, COL8_ffffff, xsize - 47, ysize - 3, xsize - 4, ysize - 3);
-    boxfill8(vram, xsize, COL8_ffffff, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
-}
 
 /*初始化调色板*/
 void init_palette(void)
@@ -51,9 +28,8 @@ void init_palette(void)
 void set_palette(int start, int end, unsigned char *rgb)
 {
     int i, eflags;
-    /*设定调色板前首先中断,因此先读入中断标志*/
-    eflags = io_load_eflags(); /*记录中断许可标志*/
-    io_cli();                  /*中断许可标志为0,禁止中断(其实就是执行中断)*/
+    eflags = io_load_eflags();
+    io_cli();
     io_out8(0x03c8, start);
     for (i = start; i <= end; i++)
     {
@@ -62,6 +38,132 @@ void set_palette(int start, int end, unsigned char *rgb)
         io_out8(0x03c9, rgb[2] / 4);
         rgb += 3;
     }
-    io_store_eflags(eflags); /*恢复中断标志*/
+    io_store_eflags(eflags);
+    return;
+}
+void init_screen(unsigned char *vram, int xsize, int ysize)
+{
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29); /*背景色*/
+
+    boxfill8(vram, xsize, COL8_c6c6c6, 0, ysize - 28, xsize - 1, ysize - 28);
+    boxfill8(vram, xsize, COL8_ffffff, 0, ysize - 27, xsize - 1, ysize - 27);
+    boxfill8(vram, xsize, COL8_c6c6c6, 0, ysize - 26, xsize - 1, ysize - 1);
+
+    boxfill8(vram, xsize, COL8_ffffff, 3, ysize - 24, 59, ysize - 24);
+    boxfill8(vram, xsize, COL8_ffffff, 2, ysize - 24, 2, ysize - 4);
+    boxfill8(vram, xsize, COL8_848484, 3, ysize - 4, 59, ysize - 4);
+    boxfill8(vram, xsize, COL8_848484, 59, ysize - 23, 59, ysize - 5);
+    boxfill8(vram, xsize, COL8_000000, 2, ysize - 3, 59, ysize - 3);
+    boxfill8(vram, xsize, COL8_000000, 60, ysize - 24, 60, ysize - 3);
+
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize - 4, ysize - 24);
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize - 3);
+    boxfill8(vram, xsize, COL8_ffffff, xsize - 47, ysize - 3, xsize - 4, ysize - 3);
+    boxfill8(vram, xsize, COL8_ffffff, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
+}
+
+/*显示字符串*/
+void putfonts8_asc(unsigned char *vram, int xsize, unsigned char color, int x, int y, unsigned char *str)
+{
+    extern char hankaku[4096];
+    for (; *str != 0x00; str++)
+    {
+        putfont8(vram, xsize, color, x, y, hankaku + (*str) * 16);
+        x += 8;
+    }
+    return;
+}
+/*显示字体*/
+void putfont8(char *vram, int xsize, char color, int x, int y, char *font)
+{
+    int i;
+    char d;
+    char *p;
+    for (i = 0; i < 16; i++) /*16行*/
+    {
+        p = vram + (y + i) * xsize + x;
+        d = font[i];
+        if ((d & 0x80) != 0)
+            *(p + 0) = color;
+        if ((d & 0x40) != 0)
+            *(p + 1) = color;
+        if ((d & 0x20) != 0)
+            *(p + 2) = color;
+        if ((d & 0x10) != 0)
+            *(p + 3) = color;
+        if ((d & 0x08) != 0)
+            *(p + 4) = color;
+        if ((d & 0x04) != 0)
+            *(p + 5) = color;
+        if ((d & 0x02) != 0)
+            *(p + 6) = color;
+        if ((d & 0x01) != 0)
+            *(p + 7) = color;
+    }
+    return;
+}
+/*初始化屏幕,填充颜色*/
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
+{
+    int x, y;
+    for (y = y0; y <= y1; y++)
+    {
+        for (x = x0; x <= x1; x++)
+        {
+            vram[y * xsize + x] = c; /*色号给到指定vram处*/
+        }
+    }
+    return;
+}
+/*绘制鼠标*/
+void init_mouse_cursor8(char *mouse, char bc_color)
+{
+    static char cursor[16][16] = {"**************..",
+                                  "*OOOOOOOOOOO*...",
+                                  "*OOOOOOOOOO*....",
+                                  "*OOOOOOOOO*.....",
+                                  "*OOOOOOOO*......",
+                                  "*OOOOOOO*.......",
+                                  "*OOOOOOO* ......",
+                                  "*OOOOOOOO*......",
+                                  "*OOOO**OOO*.....",
+                                  "*OOO*..*OOO*....",
+                                  "*OO*....*OOO*...",
+                                  "*O*......*OOO*..",
+                                  "**........*OOO*.",
+                                  "*..........*OOO*",
+                                  "............*OO*",
+                                  ".............***"};
+    int x, y;
+    for (y = 0; y < 16; y++)
+    {
+        for (x = 0; x < 16; x++)
+        {
+            if (cursor[y][x] == '*')
+            {
+                *(mouse + y * 16 + x) = COL8_000084;
+            }
+            if (cursor[y][x] == 'O')
+            {
+                *(mouse + y * 16 + x) = COL8_00ffff;
+            }
+            if (cursor[y][x] == '.')
+            {
+                *(mouse + y * 16 + x) = bc_color;
+            }
+        }
+    }
+    return;
+}
+void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0, int py0, char *buf, int bxsize)
+{
+    int x, y;
+    for (y = 0; y < pysize; y++) /*这里的坐标从0开始,到pysize结束,是屏幕的 ys*/
+    {
+        for (x = 0; x < pxsize; x++)
+        {
+            *(vram + (y + py0) * vxsize + (x + px0)) = *(buf + y * bxsize + x);
+        }
+    }
     return;
 }
