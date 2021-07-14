@@ -5,6 +5,7 @@ void init_gdtidt(void)
     struct SegmentDescriptor *gdt = (struct SegmentDescriptor *)ADR_GDT; /*GDT在内存上的位置*/
     struct GATEDescriptor *idt = (struct GATEDescriptor *)ADR_IDT;
     int i;
+
     /*GDT初始化*/
     for (i = 0; i <= LIMIT_GDT / 8; i++) /*8192个段*/
     {
