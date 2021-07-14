@@ -35,6 +35,7 @@ _io_in8:
         mov     edx,[esp+4]
         mov     eax,0
         in      al,dx
+        RET
 _io_in16:
         mov     edx,[esp+4]
         mov     eax,0
