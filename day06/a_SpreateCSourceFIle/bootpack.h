@@ -33,8 +33,8 @@ struct GATEDescriptor
     short offset_high;
 };
 void init_gdtidt();
-void set_SegDesc(struct SegmentDescriptor *sd, unsigned int limit, int base, int ar);
-void set_GATEDesc(struct GATEDescriptor *gd, int offset, int selector, int ar);
+void set_segmdesc(struct SegmentDescriptor *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATEDescriptor *gd, int offset, int selector, int ar);
 /*ÑÕÉ«¶¨Òå*/
 #define COL8_000000 0
 #define COL8_ff0000 1

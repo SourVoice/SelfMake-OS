@@ -1,0 +1,128 @@
+     1 00000000                                 ;汇编语言实现与底层硬件的交互逻辑,用C调用底层硬件接口实现上层逻辑
+     2 00000000                                 ;nask_func
+     3 00000000                                 ;TAB = 4
+     4 00000000                                 
+     5 00000000                                 ;提供该接口文件信息
+     6 00000000                                 [FORMAT "WCOFF"]                        ;制作目标文件的格式
+     7 00000000                                 [bits 32]                               ;制作32位模式的机器语言
+     8 00000000                                 [instrset "i486p"]                      ; for 486(using nask)
+     9 00000000                                 [FILE "naskfunc.nas"]                   ;源文件名
+    10 00000000                                 
+    11 00000000                                 GLOBAL          _io_hlt                     ;程序中包含的函数名       
+    12 00000000                                 GLOBAL          _io_cli,_io_sti,_io_stihlt
+    13 00000000                                 GLOBAL          _io_in8,_io_in16,_io_in32
+    14 00000000                                 GLOBAL          _io_out8,_io_out16,_io_out32
+    15 00000000                                 GLOBAL          _io_load_eflags,_io_store_eflags         
+    16 00000000                                 GLOBAL          _load_gdtr,_load_idtr
+    17 00000000                                 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c
+    18 00000000                                 EXTERN          _inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
+    19                                          [SECTION .text]
+    20 00000000                                 _io_hlt:                                ;void io_hlt(void),函数声明+定义
+    21 00000000 F4                                      hlt
+    22 00000001 C3                                      RET                             
+    23 00000002                                 _io_cli:                                ;中断标志置为0
+    24 00000002 FA                                      cli
+    25 00000003 C3                                      RET
+    26 00000004                                 _io_sti:                                ;中断标志置为1
+    27 00000004 FB                                      sti
+    28 00000005 C3                                      RET     
+    29 00000006                                 _io_stihlt:
+    30 00000006 8B 54 24 04                             mov     edx,[esp+4]
+    31 0000000A B8 00000000                             mov     eax,0
+    32 0000000F EC                                      in      al,dx
+    33 00000010 C3                                      RET
+    34 00000011                                 _io_in8:
+    35 00000011 8B 54 24 04                             mov     edx,[esp+4]
+    36 00000015 B8 00000000                             mov     eax,0
+    37 0000001A EC                                      in      al,dx
+    38 0000001B C3                                      RET
+    39 0000001C                                 _io_in16:
+    40 0000001C 8B 54 24 04                             mov     edx,[esp+4]
+    41 00000020 B8 00000000                             mov     eax,0
+    42 00000025 66 ED                                   in      ax,dx
+    43 00000027 C3                                      RET
+    44 00000028                                 _io_in32:
+    45 00000028 8B 54 24 04                             mov     edx,[esp+4]
+    46 0000002C B8 00000000                             mov     eax,0
+    47 00000031                                 _io_out8:             
+    48 00000031 8B 54 24 04                             mov     edx,[esp+4]
+    49 00000035 8A 44 24 08                             mov     al,[esp+8]
+    50 00000039 EE                                      out     dx,al
+    51 0000003A C3                                      RET    
+    52 0000003B                                 _io_out16:
+    53 0000003B 8B 54 24 04                             mov     edx,[esp+4]
+    54 0000003F 8B 44 24 08                             mov     eax,[esp+8]
+    55 00000043 66 EF                                   out     dx,ax
+    56 00000045 C3                                      RET
+    57 00000046                                 _io_out32:
+    58 00000046 8B 54 24 04                             mov     edx,[esp+4]
+    59 0000004A 8B 44 24 08                             mov     eax,[esp+8]
+    60 0000004E EF                                      out     dx,EAX
+    61 0000004F C3                                      RET
+    62 00000050                                 _io_load_eflags:                
+    63 00000050 9C                                      pushfd                  
+    64 00000051 58                                      pop     eax             
+    65 00000052 C3                                      RET
+    66 00000053                                 _io_store_eflags:
+    67 00000053 8B 44 24 04                             mov     eax,[esp+4]     ;esp栈底指针
+    68 00000057 50                                      push    eax
+    69 00000058 9D                                      popfd
+    70 00000059 C3                                      RET        
+    71 0000005A                                 _load_gdtr:
+    72 0000005A 66 8B 44 24 04                          mov     ax,[esp+4]
+    73 0000005F 66 89 44 24 06                          mov     [esp+6],ax
+    74 00000064 0F 01 54 24 06                          lgdt    [esp+6]
+    75 00000069 C3                                      RET
+    76 0000006A                                 _load_idtr:
+    77 0000006A 66 8B 44 24 04                          mov     ax,[esp+4]
+    78 0000006F 66 89 44 24 06                          mov     [esp+6],ax
+    79 00000074 0F 01 5C 24 06                          lidt    [esp+6]
+    80 00000079 C3                                      RET
+    81 0000007A                                 ;中断信号处理器(PIC)
+    82 0000007A                                 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
+    83 0000007A 06                                      push    ES
+    84 0000007B 1E                                      push    DS
+    85 0000007C 60                                      PUSHAD
+    86 0000007D 89 E0                                   mov     EAX,ESP
+    87 0000007F 50                                      push    EAX
+    88 00000080 66 8C D0                                mov     ax,SS
+    89 00000083 8E D8                                   mov     ds,ax
+    90 00000085 8E C0                                   mov     es,ax
+    91 00000087 E8 [00000000]                           call    _inthandler21
+    92 0000008C 58                                      pop     eax
+    93 0000008D 61                                      POPAD
+    94 0000008E 1F                                      pop     ds
+    95 0000008F 07                                      pop     es
+    96 00000090 CF                                      IRETD                           ;中断程序中只能使用IRETD返回
+    97 00000091                                 _asm_inthandler27:                      
+    98 00000091 06                                      push    ES
+    99 00000092 1E                                      push    DS
+   100 00000093 60                                      PUSHAD
+   101 00000094 89 E0                                   mov     EAX,esp
+   102 00000096 50                                      push    EAX
+   103 00000097 66 8C D0                                mov     ax,SS
+   104 0000009A 8E D8                                   mov     ds,ax
+   105 0000009C 8E C0                                   mov     es,ax
+   106 0000009E E8 [00000000]                           call    _inthandler27
+   107 000000A3 58                                      pop     eax
+   108 000000A4 61                                      POPAD
+   109 000000A5 1F                                      pop     ds
+   110 000000A6 07                                      pop     es
+   111 000000A7 CF                                      IRETD                           
+   112 000000A8                                  
+   113 000000A8                                  _asm_inthandler2c:                      
+   114 000000A8 06                                      push    ES
+   115 000000A9 1E                                      push    DS
+   116 000000AA 60                                      PUSHAD
+   117 000000AB 89 E0                                   mov     EAX,esp
+   118 000000AD 50                                      push    EAX
+   119 000000AE 66 8C D0                                mov     ax,SS
+   120 000000B1 8E D8                                   mov     ds,ax
+   121 000000B3 8E C0                                   mov     es,ax
+   122 000000B5 E8 [00000000]                           call    _inthandler2c
+   123 000000BA 58                                      pop     eax
+   124 000000BB 61                                      POPAD
+   125 000000BC 1F                                      pop     ds
+   126 000000BD 07                                      pop     es
+   127 000000BE CF                                      IRETD                           
+   128 000000BF                                  
