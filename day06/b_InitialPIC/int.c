@@ -2,6 +2,7 @@
 /*PIC(CPU外芯片,中断控制芯片)初始化,使用io_out8函数向PIC内部的寄存器写入内容*/
 void init_pic(void)
 {
+
     /*PIC0,PIC1指主PIC和从PIC*/
     io_out8(PIC0_IMR, 0xff); /*禁止所有中断*/
     io_out8(PIC1_IMR, 0xff); /*禁止所有中断*/
@@ -24,7 +25,7 @@ void init_pic(void)
 void inthandler21(int *esp)
 {
     /*来自PS/2键盘的中断*/
-    struct BOOTINFO *binfo = (struct BOOTFO *)ADR_BOOTINFO;
+    struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
     putfonts8_asc(binfo->vram, binfo->scrnx, COL8_000084, 0, 0, "INT  21  (IRQ-1) : PS/2 keyboard");
     for (;;)
@@ -35,7 +36,7 @@ void inthandler21(int *esp)
 void inthandler2c(int *esp)
 {
     /* 来自PS/2鼠标的中断 */
-    struct BOOTINFO *binfo = (struct BOOTFO *)ADR_BOOTINFO;
+    struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
     putfonts8_asc(binfo->vram, binfo->scrnx, COL8_ffffff, 0, 0, "INT  2c  (IRQ-12) : PS/2 mouse");
     for (;;)

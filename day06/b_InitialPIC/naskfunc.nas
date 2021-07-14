@@ -42,7 +42,8 @@ _io_in16:
         RET
 _io_in32:
         mov     edx,[esp+4]
-        mov     eax,0
+        in      eax,dx
+        RET
 _io_out8:             
         mov     edx,[esp+4]
         mov     al,[esp+8]
@@ -70,12 +71,12 @@ _io_store_eflags:
 _load_gdtr:
         mov     ax,[esp+4]
         mov     [esp+6],ax
-        lgdt    [esp+6]
+        LGDT    [esp+6]
         RET
 _load_idtr:
         mov     ax,[esp+4]
         mov     [esp+6],ax
-        lidt    [esp+6]
+        LIDT    [esp+6]
         RET
 ;中断信号处理器(PIC)
 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
