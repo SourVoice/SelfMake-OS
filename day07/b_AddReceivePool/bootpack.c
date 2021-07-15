@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include "bootpack.h"
+
+extern struct KEYBUF keybuf; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
+
 void HariMain(void)
 {
     char s[40];
@@ -11,6 +14,7 @@ void HariMain(void)
     xsize = binfo->scrnx;
     ysize = binfo->scrny;
     vram = binfo->vram;
+    unsigned char i;
 
     init_gdtidt();
     init_pic();
@@ -39,12 +43,12 @@ void HariMain(void)
         }
         else
         {
-            unsigned char i;
             i = keybuf.data;
             keybuf.flag = 0;
-            io_sti;
+            io_sti();
             sprintf(s, "%02x", i);
             boxfill8(vram, xsize, COL8_008484, 0, 16, 15, 31);
+            putfonts8_asc(vram, xsize, COL8_ffffff, 0, 16, s);
         }
     }
 }

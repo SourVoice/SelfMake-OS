@@ -1,6 +1,8 @@
 #include "bootpack.h"
 /*PIC(CPU外芯片,中断控制芯片)初始化,使用io_out8函数向PIC内部的寄存器写入内容*/
 
+struct KEYBUF keybuf;
+
 void init_pic(void)
 {
 
@@ -26,8 +28,6 @@ void init_pic(void)
 
 void inthandler21(int *esp)
 {
-    /*来自PS/2键盘的中断*/
-    struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     unsigned char data;
     io_out8(PIC0_OCW2, 0x61);   /*通知PIC的IRQ-01请求已经接受完毕,PIC监视IRQ1中断*/
     data = io_in8(PORT_KEYDAY); /*从编号为0x0060的设备输入8位信息代表按键编码,编号0x0060设备为键盘*/
@@ -37,11 +37,9 @@ void inthandler21(int *esp)
         keybuf.data = data;
         keybuf.flag = 1;
     }
-    for (;;)
-    {
-        io_hlt(); /*显示信息后保持停机状态*/
-    }
+    return;
 }
+
 void inthandler2c(int *esp)
 {
     /* 来自PS/2鼠标的中断 */

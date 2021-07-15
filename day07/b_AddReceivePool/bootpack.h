@@ -12,6 +12,7 @@ void io_cli(void);
 void io_sti(void);
 void io_stihlt(void);
 void io_out8(int port, int data);
+unsigned char io_in8(int port);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
@@ -83,7 +84,7 @@ void init_pic(void); /*初始化PIC*/
 void inthandler21(int *esp);
 void inthandler27(int *esp);
 void inthandler2c(int *esp);
-/*PIC端口号,0是主PIC,1代表从PIC*/
+
 #define PIC0_ICW1 0x0020 /*ICW(初始化控制数据),有关ICW的简要信息见书上*/
 #define PIC0_OCW2 0x0020 /*PIC内有许多寄存器,以端口号码进行区别*/
 #define PIC0_IMR 0x0021  /*IMR是PIC内中断屏蔽寄存器,8位对应8个IRQ信号*/
@@ -96,10 +97,8 @@ void inthandler2c(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
-struct KEYBUF /*键盘输入利用缓冲区保存,flag用于表示缓冲区是否为空,0==empty*/
+struct KEYBUF
 {
     unsigned char data, flag;
 };
-struct KEYBUF keybuf;
-
 #define PORT_KEYDAY 0x0060

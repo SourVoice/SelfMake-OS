@@ -26,11 +26,10 @@ _io_cli:                                ;中断标志置为0
 _io_sti:                                ;中断标志置为1
         sti
         RET     
-_io_stihlt:
-        mov     edx,[esp+4]
-        mov     eax,0
-        in      al,dx
-        RET
+_io_stihlt:             ; void io_stihlt(void);
+        sti
+        hlt
+        ret
 _io_in8:
         mov     edx,[esp+4]
         mov     eax,0
