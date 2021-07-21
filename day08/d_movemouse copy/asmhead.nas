@@ -36,21 +36,20 @@ VRAM	EQU		0x0ff8			; 图像缓冲区的起始地址
 		INT		0x16 			; keyboard BIOS
 		MOV		[LEDS],AL
 
-; 防止PIC接受所有中断(执行报护模式转换时屏蔽所有中断)
+; 防止PIC接受所有中断
 ;	AT兼容机的规范、PIC初始化
 ;	然后之前在CLI不做任何事就挂起
 ;	PIC在同意后初始化
 
 		MOV		AL,0xff
-		OUT		0x21,AL			;禁止从主PIC的全部中断
+		OUT		0x21,AL
 		NOP						; 不断执行OUT指令
-		OUT		0xa1,AL			;禁止从从PIC的全部中断
+		OUT		0xa1,AL
 
 		CLI						; 进一步中断CPU
 
 ; 让CPU支持1M以上内存、设置A20GATE
-;CPU在16位模式下最大内存只有1MB
-;以下使内存可用
+
 		CALL	waitkbdout
 		MOV		AL,0xd1
 		OUT		0x64,AL
@@ -61,13 +60,13 @@ VRAM	EQU		0x0ff8			; 图像缓冲区的起始地址
 
 ; 保护模式转换(就是这里!!被坑了)
 
-[INSTRSET "i486p"]				; 说明使用486指令(可以使用LGDT,EAX,CR0等32位有关指令)
+[INSTRSET "i486p"]				; 说明使用486指令
 
 		LGDT	[GDTR0]			; 设置临时GDT
 		MOV		EAX,CR0
 		AND		EAX,0x7fffffff	; 使用bit31（禁用分页）
 		OR		EAX,0x00000001	; bit0到1转换（保护模式过渡）
-		MOV		CR0,EAX			;通过CR0切换到保护模式
+		MOV		CR0,EAX
 		JMP		pipelineflush
 pipelineflush:
 		MOV		AX,1*8			;  写32bit的段

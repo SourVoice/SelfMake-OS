@@ -10,7 +10,6 @@ void HariMain(void)
 
     char *vram;
     int xsize, ysize;
-    int mouse_x, mouse_y;
     struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     xsize = binfo->scrnx;
     ysize = binfo->scrny;
@@ -26,6 +25,11 @@ void HariMain(void)
 
     /*鼠标*/
     init_mouse_cursor8(mouse, COL8_000000);
+    putblock8_8(vram, xsize, 16, 16, xsize / 2, ysize / 2, mouse, 16);
+
+    /*变量显示*/
+    sprintf(s, "scrnx = %d,scrny= %d", xsize, ysize); /*新添内容,调用sprintf*/
+    putfonts8_asc(vram, xsize, COL8_00ffff, 0, 0, s); /*s用于记录字符串的地址*/
 
     io_out8(PIC0_IMR, 0xf9);
     io_out8(PIC1_IMR, 0xef);
@@ -64,47 +68,9 @@ void HariMain(void)
                 io_sti();
                 if (mouse_decode(&mdec, data) != 0)
                 {
-                    sprintf(s, "[lcr %4d %4d]", mdec.x, mdec.y);
-                    if ((mdec.btn & 0x01) != 0) /*最低位为1*/
-                    {
-                        s[1] = 'L';
-                    }
-                    if ((mdec.btn & 0x02) != 0)
-                    {
-                        s[3] = 'R';
-                    }
-                    if ((mdec.btn & 0x04) != 0)
-                    {
-                        s[2] = 'C';
-                    }
-                    boxfill8(vram, xsize, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
+                    sprintf(s, "%02x,%02x,%02x", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
+                    boxfill8(vram, xsize, COL8_008484, 32, 16, 32 + 8 * 8 - 1, 31);
                     putfonts8_asc(vram, xsize, COL8_ffffff, 32, 16, s);
-
-                    /*移动指针*/
-                    boxfill8(vram, xsize, COL8_008484, mouse_x, mouse_y, mouse_x + 15, mouse_y + 15); /*隐藏鼠标*/
-
-                    mouse_x += mdec.x;
-                    mouse_y += mdec.y;
-                    if (mouse_x < 0)
-                    {
-                        mouse_x = 0;
-                    }
-                    if (mouse_y < 0)
-                    {
-                        mouse_y = 0;
-                    }
-                    if (mouse_x > xsize - 16)
-                    {
-                        mouse_x = xsize - 16;
-                    }
-                    if (mouse_y > ysize - 16)
-                    {
-                        mouse_y = ysize - 16;
-                    }
-                    sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
-                    boxfill8(vram, xsize, COL8_008484, 0, 0, 79, 15);              /*隐藏坐标*/
-                    putfonts8_asc(vram, xsize, COL8_ffffff, 0, 0, s);              /*显示坐标*/
-                    putblock8_8(vram, xsize, 16, 16, mouse_x, mouse_y, mouse, 16); /*绘制鼠标*/
                 }
             }
         }
@@ -145,19 +111,14 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
     {
         if (dat == 0xfa)
         {
-            /*等待鼠标的0xfa阶段*/
             mdec->phase = 1;
         }
         return 0;
     }
     if (mdec->phase == 1)
     {
-        if ((dat & 0xc8) == 0x08)
-        {
-            /*检验第一个字节正确性*/
-            mdec->buf[0] = dat;
-            mdec->phase = 2;
-        }
+        mdec->buf[0] = dat;
+        mdec->phase = 2;
         return 0;
     }
     if (mdec->phase == 2)
@@ -170,18 +131,6 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
     {
         mdec->buf[2] = dat;
         mdec->phase = 1;
-        mdec->btn = mdec->buf[0] & 0x07;
-        mdec->x = mdec->buf[1];
-        mdec->y = mdec->buf[2];
-        if ((mdec->buf[0] & 0x10) != 0)
-        {
-            mdec->x |= 0xffffff00;
-        }
-        if ((mdec->buf[0] & 0x20) != 0)
-        {
-            mdec->y |= 0xffffff00;
-        }
-        mdec->y = -mdec->y; /*鼠标与屏幕方向的y相反*/
         return 1;
     }
     return -1;
