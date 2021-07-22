@@ -42,7 +42,7 @@ void HariMain(void)
     enable_mouse(&mdec); /*鼠标接受至栈打开*/
 
     /*内存检查*/
-    int i = memtest(0x00400000, 0xbfffffff);
+    int i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
     sprintf(s, "memory %dMB", i);
     putfonts8_asc(vram, xsize, COL8_ffffff, 0, 32, s);
 
