@@ -1,0 +1,136 @@
+     1 00000000                                 ;汇编语言实现与底层硬件的交互逻辑,用C调用底层硬件接口实现上层逻辑
+     2 00000000                                 ;nask_func
+     3 00000000                                 ;TAB = 4
+     4 00000000                                 
+     5 00000000                                 ;提供该接口文件信息
+     6 00000000                                 [FORMAT "WCOFF"]                        ;制作目标文件的格式
+     7 00000000                                 [bits 32]                               ;制作32位模式的机器语言
+     8 00000000                                 [instrset "i486p"]                      ; for 486(using nask)
+     9 00000000                                 [FILE "naskfunc.nas"]                   ;源文件名
+    10 00000000                                 
+    11 00000000                                 GLOBAL          _io_hlt                     ;程序中包含的函数名       
+    12 00000000                                 GLOBAL          _io_cli,_io_sti,_io_stihlt
+    13 00000000                                 GLOBAL          _io_in8,_io_in16,_io_in32
+    14 00000000                                 GLOBAL          _io_out8,_io_out16,_io_out32
+    15 00000000                                 GLOBAL          _io_load_eflags,_io_store_eflags         
+    16 00000000                                 GLOBAL          _load_gdtr,_load_idtr
+    17 00000000                                 GLOBAL          _load_cr0,_store_cr0
+    18 00000000                                 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c
+    19 00000000                                 EXTERN          _inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
+    20                                          [SECTION .text]
+    21 00000000                                 _io_hlt:                                ;void io_hlt(void),函数声明+定义
+    22 00000000 F4                                      hlt
+    23 00000001 C3                                      RET                             
+    24 00000002                                 _io_cli:                                ;中断标志置为0
+    25 00000002 FA                                      cli
+    26 00000003 C3                                      RET
+    27 00000004                                 _io_sti:                                ;中断标志置为1
+    28 00000004 FB                                      sti
+    29 00000005 C3                                      RET     
+    30 00000006                                 _io_stihlt:             ; void io_stihlt(void);
+    31 00000006 FB                                      sti
+    32 00000007 F4                                      hlt
+    33 00000008 C3                                      ret
+    34 00000009                                 _io_in8:
+    35 00000009 8B 54 24 04                             mov     edx,[esp+4]
+    36 0000000D B8 00000000                             mov     eax,0
+    37 00000012 EC                                      in      al,dx
+    38 00000013 C3                                      RET
+    39 00000014                                 _io_in16:
+    40 00000014 8B 54 24 04                             mov     edx,[esp+4]
+    41 00000018 B8 00000000                             mov     eax,0
+    42 0000001D 66 ED                                   in      ax,dx
+    43 0000001F C3                                      RET
+    44 00000020                                 _io_in32:
+    45 00000020 8B 54 24 04                             mov     edx,[esp+4]
+    46 00000024 ED                                      in      eax,dx
+    47 00000025 C3                                      RET
+    48 00000026                                 _io_out8:             
+    49 00000026 8B 54 24 04                             mov     edx,[esp+4]
+    50 0000002A 8A 44 24 08                             mov     al,[esp+8]
+    51 0000002E EE                                      out     dx,al
+    52 0000002F C3                                      RET    
+    53 00000030                                 _io_out16:
+    54 00000030 8B 54 24 04                             mov     edx,[esp+4]
+    55 00000034 8B 44 24 08                             mov     eax,[esp+8]
+    56 00000038 66 EF                                   out     dx,ax
+    57 0000003A C3                                      RET
+    58 0000003B                                 _io_out32:
+    59 0000003B 8B 54 24 04                             mov     edx,[esp+4]
+    60 0000003F 8B 44 24 08                             mov     eax,[esp+8]
+    61 00000043 EF                                      out     dx,EAX
+    62 00000044 C3                                      RET
+    63 00000045                                 _io_load_eflags:                
+    64 00000045 9C                                      pushfd                  
+    65 00000046 58                                      pop     eax             
+    66 00000047 C3                                      RET
+    67 00000048                                 _io_store_eflags:
+    68 00000048 8B 44 24 04                             mov     eax,[esp+4]     ;esp栈底指针
+    69 0000004C 50                                      push    eax
+    70 0000004D 9D                                      popfd
+    71 0000004E C3                                      RET        
+    72 0000004F                                 _load_gdtr:
+    73 0000004F 66 8B 44 24 04                          mov     ax,[esp+4]
+    74 00000054 66 89 44 24 06                          mov     [esp+6],ax
+    75 00000059 0F 01 54 24 06                          LGDT    [esp+6]
+    76 0000005E C3                                      RET
+    77 0000005F                                 _load_idtr:
+    78 0000005F 66 8B 44 24 04                          mov     ax,[esp+4]
+    79 00000064 66 89 44 24 06                          mov     [esp+6],ax
+    80 00000069 0F 01 5C 24 06                          LIDT    [esp+6]
+    81 0000006E C3                                      RET
+    82 0000006F                                 _load_cr0:      ;int store_cr0(void)
+    83 0000006F 0F 20 C0                                mov     eax,CR0
+    84 00000072 C3                                      ret
+    85 00000073                                 _store_cr0:     ;void store_cr0(int cr0)
+    86 00000073 8B 44 24 04                             mov     eax,[esp+4]
+    87 00000077 0F 22 C0                                mov     CR0,EAX
+    88 0000007A C3                                      ret
+    89 0000007B                                 ;中断信号处理器(PIC)
+    90 0000007B                                 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
+    91 0000007B 06                                      push    ES
+    92 0000007C 1E                                      push    DS
+    93 0000007D 60                                      PUSHAD
+    94 0000007E 89 E0                                   mov     EAX,ESP
+    95 00000080 50                                      push    EAX
+    96 00000081 66 8C D0                                mov     ax,SS
+    97 00000084 8E D8                                   mov     ds,ax
+    98 00000086 8E C0                                   mov     es,ax
+    99 00000088 E8 [00000000]                           call    _inthandler21
+   100 0000008D 58                                      pop     eax
+   101 0000008E 61                                      POPAD
+   102 0000008F 1F                                      pop     ds
+   103 00000090 07                                      pop     es
+   104 00000091 CF                                      IRETD                           ;中断程序中只能使用IRETD返回
+   105 00000092                                 _asm_inthandler27:                      
+   106 00000092 06                                      push    ES
+   107 00000093 1E                                      push    DS
+   108 00000094 60                                      PUSHAD
+   109 00000095 89 E0                                   mov     EAX,esp
+   110 00000097 50                                      push    EAX
+   111 00000098 66 8C D0                                mov     ax,SS
+   112 0000009B 8E D8                                   mov     ds,ax
+   113 0000009D 8E C0                                   mov     es,ax
+   114 0000009F E8 [00000000]                           call    _inthandler27
+   115 000000A4 58                                      pop     eax
+   116 000000A5 61                                      POPAD
+   117 000000A6 1F                                      pop     ds
+   118 000000A7 07                                      pop     es
+   119 000000A8 CF                                      IRETD                           
+   120 000000A9                                  
+   121 000000A9                                  _asm_inthandler2c:                      
+   122 000000A9 06                                      push    ES
+   123 000000AA 1E                                      push    DS
+   124 000000AB 60                                      PUSHAD
+   125 000000AC 89 E0                                   mov     EAX,esp
+   126 000000AE 50                                      push    EAX
+   127 000000AF 66 8C D0                                mov     ax,SS
+   128 000000B2 8E D8                                   mov     ds,ax
+   129 000000B4 8E C0                                   mov     es,ax
+   130 000000B6 E8 [00000000]                           call    _inthandler2c
+   131 000000BB 58                                      pop     eax
+   132 000000BC 61                                      POPAD
+   133 000000BD 1F                                      pop     ds
+   134 000000BE 07                                      pop     es
+   135 000000BF CF                                      IRETD                           
+   136 000000C0                                  
