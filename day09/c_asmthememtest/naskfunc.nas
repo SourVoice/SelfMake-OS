@@ -103,7 +103,7 @@ _memtest_sub:   ;unsigned int memtest_sub(unsigned int start,unsigned int end);(
                 cmp     edi,[ebx]                       ;if(*p != pat1) goto fin
                 jne     mts_fin
                 xor     DWORD [ebx],0xffffffff          ;*p ^= 0xffffffff 
-                cmp     edi,[ebx]                       ;if(*p != pat0) goto fin
+                cmp     esi,[ebx]                       ;if(*p != pat0) goto fin
                 jne     mts_fin
                 mov     [ebx],edx                       ;*p = old
                 add     eax,0x1000                      ;i += 0x1000

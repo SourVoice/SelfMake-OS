@@ -103,7 +103,7 @@
    103 0000009B 3B 3B                                           cmp     edi,[ebx]                       ;if(*p != pat1) goto fin
    104 0000009D 75 18                                           jne     mts_fin
    105 0000009F 83 33 FF                                        xor     DWORD [ebx],0xffffffff          ;*p ^= 0xffffffff 
-   106 000000A2 3B 3B                                           cmp     edi,[ebx]                       ;if(*p != pat0) goto fin
+   106 000000A2 3B 33                                           cmp     esi,[ebx]                       ;if(*p != pat0) goto fin
    107 000000A4 75 11                                           jne     mts_fin
    108 000000A6 89 13                                           mov     [ebx],edx                       ;*p = old
    109 000000A8 05 00001000                                     add     eax,0x1000                      ;i += 0x1000
