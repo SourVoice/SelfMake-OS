@@ -29,10 +29,11 @@ void HariMain(void)
     /*中断*/
     init_keyboard();     /*键盘接受至栈打开*/
     enable_mouse(&mdec); /*鼠标接受至栈打开*/
+
     /*内存分配*/
-    memtotal = memtest(0x00400000, 0xbfffffff); /*计算内存总量*/
+    memtotal = memtest(0x00400000, 0xbfffffff);
     memman_init(memman);
-    memman_free(memman, 0x00001000, 0x0009e000);
+    memman_free(memman, 0x00001000, 0x0009e000); /* 0x00001000 - 0x0009efff */
     memman_free(memman, 0x00400000, memtotal - 0x00400000);
 
     init_palette();

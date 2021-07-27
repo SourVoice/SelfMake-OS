@@ -86,19 +86,19 @@
     83 000000A9 68 BFFFFFFF                     	PUSH	-1073741825
     84 000000AE 68 00400000                     	PUSH	4194304
     85 000000B3 E8 000002F6                     	CALL	_memtest
-    86 000000B8 68 03C00000                     	PUSH	62914560
+    86 000000B8 68 003C0000                     	PUSH	3932160
     87 000000BD 89 C6                           	MOV	ESI,EAX
     88 000000BF E8 00000369                     	CALL	_memman_init
     89 000000C4 68 0009E000                     	PUSH	647168
     90 000000C9 68 00001000                     	PUSH	4096
-    91 000000CE 68 03C00000                     	PUSH	62914560
+    91 000000CE 68 003C0000                     	PUSH	3932160
     92 000000D3 E8 000003F1                     	CALL	_memman_free
     93 000000D8 8D 86 FFC00000                  	LEA	EAX,DWORD [-4194304+ESI]
     94 000000DE C1 EE 14                        	SHR	ESI,20
     95 000000E1 83 C4 24                        	ADD	ESP,36
     96 000000E4 50                              	PUSH	EAX
     97 000000E5 68 00400000                     	PUSH	4194304
-    98 000000EA 68 03C00000                     	PUSH	62914560
+    98 000000EA 68 003C0000                     	PUSH	3932160
     99 000000EF E8 000003D5                     	CALL	_memman_free
    100 000000F4 E8 [00000000]                   	CALL	_init_palette
    101 000000F9 FF B5 FFFFFE10                  	PUSH	DWORD [-496+EBP]
@@ -118,7 +118,7 @@
    115 0000012A 50                              	PUSH	EAX
    116 0000012B FF 35 00000FF8                  	PUSH	DWORD [4088]
    117 00000131 E8 [00000000]                   	CALL	_putfonts8_asc
-   118 00000136 68 03C00000                     	PUSH	62914560
+   118 00000136 68 003C0000                     	PUSH	3932160
    119 0000013B E8 00000310                     	CALL	_memman_total
    120 00000140 C1 E8 0A                        	SHR	EAX,10
    121 00000143 89 04 24                        	MOV	DWORD [ESP],EAX
