@@ -254,3 +254,23 @@
    254 000001FC 39 CB                           	CMP	EBX,ECX
    255 000001FE 7C EB                           	JL	L48
    256 00000200 EB 99                           	JMP	L62
+   257 00000202                                 	GLOBAL	_memman_alloc_4k
+   258 00000202                                 _memman_alloc_4k:
+   259 00000202 55                              	PUSH	EBP
+   260 00000203 89 E5                           	MOV	EBP,ESP
+   261 00000205 8B 45 0C                        	MOV	EAX,DWORD [12+EBP]
+   262 00000208 05 00000FFF                     	ADD	EAX,4095
+   263 0000020D 25 FFFFF000                     	AND	EAX,-4096
+   264 00000212 89 45 0C                        	MOV	DWORD [12+EBP],EAX
+   265 00000215 5D                              	POP	EBP
+   266 00000216 E9 FFFFFEA4                     	JMP	_memman_alloc
+   267 0000021B                                 	GLOBAL	_meman_free_4k
+   268 0000021B                                 _meman_free_4k:
+   269 0000021B 55                              	PUSH	EBP
+   270 0000021C 89 E5                           	MOV	EBP,ESP
+   271 0000021E 8B 45 10                        	MOV	EAX,DWORD [16+EBP]
+   272 00000221 05 00000FFF                     	ADD	EAX,4095
+   273 00000226 25 FFFFF000                     	AND	EAX,-4096
+   274 0000022B 89 45 10                        	MOV	DWORD [16+EBP],EAX
+   275 0000022E 5D                              	POP	EBP
+   276 0000022F E9 FFFFFEE7                     	JMP	_memman_free

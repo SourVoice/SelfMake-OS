@@ -41,8 +41,8 @@ void HariMain(void)
 
     /*ЪѓБъ*/
     init_mouse_cursor8(mouse, COL8_000000);
-    // putblock8_8(vram, xsize, 16, 16, (xsize - 16) / 2, (ysize - 28 - 16) / 2, mouse, 16);
-    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_ffffff, s);
+    sprintf(s, "(%3d, %3d)", mouse_x, mouse_y);
+    putfonts8_asc(binfo->vram, binfo->scrnx, COL8_ffffff, 0, 0, s);
 
     sprintf(s, "memory %dMB free: %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(vram, xsize, COL8_ffffff, 0, 32, s);
