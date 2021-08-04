@@ -54,7 +54,7 @@ unsigned int memman_alloc(struct MEMMAN *man, unsigned int size)
     {
         if (man->free[i].size >= size) /*free[i].addr处有size可用*/
         {
-            a = man->free[i].size;
+            a = man->free[i].addr;
             man->free[i].size -= size;  /*可用空间大小减少size*/
             man->free[i].addr += size;  /*可用空间地址向后推进size*/
             if (man->free[i].size == 0) /*free[i]处空间已满*/
