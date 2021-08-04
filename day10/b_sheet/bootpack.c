@@ -42,29 +42,26 @@ void HariMain(void)
 
     /*画面*/
     init_palette();
-
-    shtctl = shtctl_init(memman, vram, xsize, ysize);
+    shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
     sht_back = sheet_alloc(shtctl);
     sht_mouse = sheet_alloc(shtctl);
-    buf_back = (unsigned char *)memman_alloc_4k(memman, xsize * ysize);
-    sheet_setbuf(sht_back, buf_back, xsize, ysize, -1);
-    sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
-    init_screen(buf_back, xsize, ysize);
-
-    /*鼠标*/
-    init_mouse_cursor8(buf_mouse, 99);
+    buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
+    sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 没有透明色 */
+    sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);                   /* 透明色号99 */
+    init_screen(buf_back, binfo->scrnx, binfo->scrny);
+    init_mouse_cursor8(buf_mouse, 99); /* 背景色号99 */
     sheet_slide(shtctl, sht_back, 0, 0);
-    mouse_x = (xsize - 16) / 2;
-    mouse_y = (ysize - 28 - 16) / 2;
+    mouse_x = (binfo->scrnx - 16) / 2; /* 按显示在画面中央来计算坐标 */
+    mouse_y = (binfo->scrny - 28 - 16) / 2;
     sheet_slide(shtctl, sht_mouse, mouse_x, mouse_y);
     sheet_updown(shtctl, sht_back, 0);
     sheet_updown(shtctl, sht_mouse, 1);
-    sprintf(s, "(%3d ,%3d)", mouse_x, mouse_y);
-    putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 0, s);
+    sprintf(s, "(%3d, %3d)", mouse_x, mouse_y);
+    putfonts8_asc(buf_back, binfo->scrnx, COL8_ffffff, 0, 0, s);
+    sprintf(s, "memory %dMB free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
+    putfonts8_asc(buf_back, binfo->scrnx, COL8_ffffff, 0, 32, s);
+    sheet_refresh(shtctl); /* 刷新文字 */
 
-    sprintf(s, "memory %dMB free: %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
-    putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 32, s);
-    sheet_refresh(shtctl);
     for (;;)
     {
         io_cli();                                                   /*屏蔽中断(一次只执行一次中断处理)*/
@@ -105,6 +102,7 @@ void HariMain(void)
                     }
                     boxfill8(buf_back, xsize, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
                     putfonts8_asc(buf_back, xsize, COL8_ffffff, 32, 16, s);
+                    sheet_refresh(shtctl);
                     /*移动指针*/
                     mouse_x += mdec.x;
                     mouse_y += mdec.y;
@@ -127,7 +125,8 @@ void HariMain(void)
                     sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
                     boxfill8(buf_back, xsize, COL8_008484, 0, 0, 79, 15); /*隐藏坐标*/
                     putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 0, s); /*显示坐标*/
-                    sheet_slide(shtctl, sht_mouse, mouse_x, mouse_y);     /*含refresh*/
+                    sheet_refresh(shtctl);
+                    sheet_slide(shtctl, sht_mouse, mouse_x, mouse_y); /*含refresh*/
                 }
             }
         }
