@@ -114,13 +114,13 @@ void HariMain(void)
                     {
                         mouse_y = 0;
                     }
-                    if (mouse_x > xsize - 16)
+                    if (mouse_x > xsize - 1) /*使鼠标出界后隐藏,但在refreshsub写入图层时仍然存在问题,需要不刷新新画面以外的内容*/
                     {
-                        mouse_x = xsize - 16;
+                        mouse_x = xsize - 1;
                     }
-                    if (mouse_y > ysize - 16)
+                    if (mouse_y > ysize - 1)
                     {
-                        mouse_y = ysize - 16;
+                        mouse_y = ysize - 1;
                     }
                     sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
                     boxfill8(buf_back, xsize, COL8_008484, 0, 0, 79, 15); /*隐藏坐标*/
