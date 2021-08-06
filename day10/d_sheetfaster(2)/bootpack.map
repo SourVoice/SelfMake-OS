@@ -1,4 +1,4 @@
-text size :   6137(0x017F9)
+text size :   6174(0x0181E)
 data size :   4552(0x011C8)
 bss  size :      0(0x00000)
 
@@ -72,14 +72,14 @@ bss  size :      0(0x00000)
 0x000011E6 : _sheet_slide
 0x0000123E : _sheet_free
 0x00001265 : _sheet_refreshsub
-0x00001337 : (.text)
-0x00001337 : _HariStartup
-0x00001340 : _sprintf
-0x00001340 : (.text)
-0x00001354 : (.text)
-0x00001390 : _strtoul0
-0x00001463 : (.text)
-0x0000148B : _vsprintf
+0x0000135C : (.text)
+0x0000135C : _HariStartup
+0x00001365 : _sprintf
+0x00001365 : (.text)
+0x00001379 : (.text)
+0x000013B5 : _strtoul0
+0x00001488 : (.text)
+0x000014B0 : _vsprintf
 0x00000000 : (.data)
 0x00000000 : (.data)
 0x00000000 : (.data)

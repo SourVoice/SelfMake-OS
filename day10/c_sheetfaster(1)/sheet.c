@@ -43,7 +43,7 @@ void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, i
     sht->bxsize = xsize;
     sht->bysize = ysize;
     sht->color_inv = color_inv;
-    return 0;
+    return;
 }
 /*设定底板高度*/
 void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)

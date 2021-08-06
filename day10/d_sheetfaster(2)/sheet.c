@@ -43,7 +43,7 @@ void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, i
     sht->bxsize = xsize;
     sht->bysize = ysize;
     sht->color_inv = color_inv;
-    return 0;
+    return;
 }
 /*设定底板高度*/
 void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
@@ -155,7 +155,7 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1,
         bx0 = vram_x0 - sht->vram_x0;
         by0 = vram_y0 - sht->vram_y0;
         bx1 = vram_x1 - sht->vram_x0;
-        by0 = vram_y1 - sht->vram_y0;
+        by1 = vram_y1 - sht->vram_y0;
         if (bx0 < 0)
         {
             bx0 = 0;
@@ -170,12 +170,12 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1,
         }
         if (by1 > sht->bysize)
         {
-            bx1 = sht->bysize;
+            by1 = sht->bysize;
         }
         for (by = by0; by < by1; by++)
         {
             vy = sht->vram_y0 + by;
-            for (bx = by0; bx < bx1; bx++)
+            for (bx = 0; bx < sht->bxsize; bx++)
             {
                 vx = sht->vram_x0 + bx;
                 if (vram_x0 <= vx && vx < vram_x1 && vram_y0 <= vy && vy < vram_y1)
