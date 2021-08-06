@@ -144,17 +144,38 @@ void sheet_free(struct SHTCTL *ctl, struct SHEET *sht)
 }
 void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1)
 {
-    int h, bx, by, vx, vy;
+    int h, bx, by, vx, vy, bx0, by0, bx1, by1; /*bx0,by0,bx1,by1表示将要调整到的位置*/
     unsigned char *buf, c, *vram = ctl->vram;
     struct SHEET *sht;
     for (h = 0; h <= ctl->top; h++)
     {
         sht = ctl->sheets[h];
         buf = sht->buf;
-        for (by = 0; by < sht->bysize; by++)
+        /*从vx0~vy1，对bx0~by1进行倒推*/
+        bx0 = vram_x0 - sht->vram_x0;
+        by0 = vram_y0 - sht->vram_y0;
+        bx1 = vram_x1 - sht->vram_x0;
+        by0 = vram_y1 - sht->vram_y0;
+        if (bx0 < 0)
+        {
+            bx0 = 0;
+        }
+        if (by0 < 0)
+        {
+            by0 = 0;
+        }
+        if (bx1 > sht->bxsize)
+        {
+            bx1 = sht->bxsize;
+        }
+        if (by1 > sht->bysize)
+        {
+            bx1 = sht->bysize;
+        }
+        for (by = by0; by < by1; by++)
         {
             vy = sht->vram_y0 + by;
-            for (bx = 0; bx < sht->bxsize; bx++)
+            for (bx = by0; bx < bx1; bx++)
             {
                 vx = sht->vram_x0 + bx;
                 if (vram_x0 <= vx && vx < vram_x1 && vram_y0 <= vy && vy < vram_y1)
