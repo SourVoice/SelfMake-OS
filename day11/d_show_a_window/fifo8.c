@@ -1,6 +1,6 @@
 #include "bootpack.h"
 
-int fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf)
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf)
 {
     fifo->size = size;
     fifo->buf = buf;
@@ -8,6 +8,7 @@ int fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf)
     fifo->flags = 0;
     fifo->p = 0; //写入位置
     fifo->q = 0; //读出位置
+    return;
 }
 
 int fifo8_put(struct FIFO8 *fifo, unsigned char data)

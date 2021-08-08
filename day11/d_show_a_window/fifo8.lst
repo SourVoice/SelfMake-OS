@@ -9,15 +9,15 @@
      9 00000000                                 _fifo8_init:
     10 00000000 55                              	PUSH	EBP
     11 00000001 89 E5                           	MOV	EBP,ESP
-    12 00000003 8B 55 08                        	MOV	EDX,DWORD [8+EBP]
+    12 00000003 8B 45 08                        	MOV	EAX,DWORD [8+EBP]
     13 00000006 8B 4D 0C                        	MOV	ECX,DWORD [12+EBP]
-    14 00000009 8B 45 10                        	MOV	EAX,DWORD [16+EBP]
-    15 0000000C 89 02                           	MOV	DWORD [EDX],EAX
-    16 0000000E 89 4A 0C                        	MOV	DWORD [12+EDX],ECX
-    17 00000011 89 4A 10                        	MOV	DWORD [16+EDX],ECX
-    18 00000014 C7 42 14 00000000               	MOV	DWORD [20+EDX],0
-    19 0000001B C7 42 04 00000000               	MOV	DWORD [4+EDX],0
-    20 00000022 C7 42 08 00000000               	MOV	DWORD [8+EDX],0
+    14 00000009 8B 55 10                        	MOV	EDX,DWORD [16+EBP]
+    15 0000000C 89 48 0C                        	MOV	DWORD [12+EAX],ECX
+    16 0000000F 89 10                           	MOV	DWORD [EAX],EDX
+    17 00000011 89 48 10                        	MOV	DWORD [16+EAX],ECX
+    18 00000014 C7 40 14 00000000               	MOV	DWORD [20+EAX],0
+    19 0000001B C7 40 04 00000000               	MOV	DWORD [4+EAX],0
+    20 00000022 C7 40 08 00000000               	MOV	DWORD [8+EAX],0
     21 00000029 5D                              	POP	EBP
     22 0000002A C3                              	RET
     23 0000002B                                 	GLOBAL	_fifo8_put

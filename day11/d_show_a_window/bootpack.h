@@ -26,6 +26,7 @@ void asm_inthandler2c(void);
 
 /*bootpack.c*/
 //中断
+void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*暂时绘制窗口*/
 
 /*graphic.c屏幕绘制函数声明*/
 
@@ -112,10 +113,10 @@ struct FIFO8
 
 /*fifo8.c*/
 #define FLAFS_OVERRUN 0x0001
-int fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf); /*缓冲区初始化*/
-int fifo8_put(struct FIFO8 *fifo, unsigned char data);            /*向FIFO传送数据并保存*/
-int fifo8_get(struct FIFO8 *fifo);                                /*从fifo取出数据*/
-int fifo8_status(struct FIFO8 *fifo);                             /*返回buf中有效数据数目*/
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf); /*缓冲区初始化*/
+int fifo8_put(struct FIFO8 *fifo, unsigned char data);             /*向FIFO传送数据并保存*/
+int fifo8_get(struct FIFO8 *fifo);                                 /*从fifo取出数据*/
+int fifo8_status(struct FIFO8 *fifo);                              /*返回buf中有效数据数目*/
 
 /*mouse.c*/
 #define PORT_KEYDAT 0x0060
