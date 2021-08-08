@@ -50,7 +50,7 @@ void HariMain(void)
     buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68);
     sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 没有透明色 */
     sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);                   /* 透明色号99 */
-    sheet_setbuf(sht_win, buf_win, 16, 16, -1);
+    sheet_setbuf(sht_win, buf_win, 160, 68, -1);
     init_screen(buf_back, binfo->scrnx, binfo->scrny);
     init_mouse_cursor8(buf_mouse, 99); /* 背景色号99 */
     make_window(buf_win, 160, 68, "window");
@@ -169,7 +169,7 @@ void make_window(unsigned char *buf, int xsize, int ysize, char *title)
     boxfill8(buf, xsize, COL8_000084, 3, 3, xsize - 4, 20);
     boxfill8(buf, xsize, COL8_848484, 1, ysize - 2, xsize - 2, ysize - 2);
     boxfill8(buf, xsize, COL8_000000, 0, ysize - 1, xsize - 1, ysize - 1);
-    putfonts8_asc(buf, xsize, 24, 4, COL8_ffffff, title);
+    putfonts8_asc(buf, xsize, COL8_ffffff, 24, 4, title);
     for (y = 0; y < 14; y++)
     {
         for (x = 0; x < 16; x++)
