@@ -195,5 +195,5 @@ void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, i
 void sheet_updown(struct SHEET *sht, int height);
 void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1); /*从下到上描绘所有图层*/
 void sheet_slide(struct SHEET *sht, int vram_x0, int vram_y0);
-void sheet_free(struct SHEET *sht);                                                            /*释放已使用图层空间*/
-void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1); /*记录*/
+void sheet_free(struct SHEET *sht);                                                                    /*释放已使用图层空间*/
+void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0); /*h0表示需要刷新的图层*/
