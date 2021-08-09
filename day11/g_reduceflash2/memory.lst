@@ -266,8 +266,8 @@
    266 00000219 89 45 0C                        	MOV	DWORD [12+EBP],EAX
    267 0000021C 5D                              	POP	EBP
    268 0000021D E9 FFFFFE9D                     	JMP	_memman_alloc
-   269 00000222                                 	GLOBAL	_meman_free_4k
-   270 00000222                                 _meman_free_4k:
+   269 00000222                                 	GLOBAL	_memman_free_4k
+   270 00000222                                 _memman_free_4k:
    271 00000222 55                              	PUSH	EBP
    272 00000223 89 E5                           	MOV	EBP,ESP
    273 00000225 8B 45 10                        	MOV	EAX,DWORD [16+EBP]

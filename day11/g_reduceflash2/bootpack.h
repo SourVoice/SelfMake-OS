@@ -169,7 +169,7 @@ unsigned int memman_total(struct MEMMAN *man);                             /*ÄÚ´
 unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);          /*ÄÚ´æ·ÖÅä*/
 int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size); /*ÄÚ´æÊÍ·Å(MEMMAN¸üĞÂ¿ÉÓÃĞÅÏ¢)*/
 unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);       /*4kÎªµ¥Î»½øĞĞÄÚ´æ·ÖÅä(È¡Éá´¦Àí)*/
-int meman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 /*sheet.c´°¿Úµş¼Ó*/
 #define MAX_SHEETS 256 /*ËùÄÜ¹ÜÀíµÄ×î´óÍ¼²ãÊı*/
@@ -184,7 +184,7 @@ struct SHEET
 };
 struct SHTCTL /*Í¼²ã¹ÜÀí*/
 {
-    unsigned char *vram;
+    unsigned char *vram, *map;
     int xsize, ysize, top;
     struct SHEET *sheets[MAX_SHEETS]; /*Í¼²ãµØÖ·,sheets0ÖĞÅÅÁĞºÃºó,µØÖ·Ğ´Èësheets*/
     struct SHEET sheets0[MAX_SHEETS]; /*Í¼²ãÄÚÈİ*/
@@ -195,5 +195,6 @@ void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, i
 void sheet_updown(struct SHEET *sht, int height);
 void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1); /*´ÓÏÂµ½ÉÏÃè»æËùÓĞÍ¼²ã*/
 void sheet_slide(struct SHEET *sht, int vram_x0, int vram_y0);
-void sheet_free(struct SHEET *sht);                                                                    /*ÊÍ·ÅÒÑÊ¹ÓÃÍ¼²ã¿Õ¼ä*/
-void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0); /*h0±íÊ¾ĞèÒªË¢ĞÂµÄÍ¼²ã*/
+void sheet_free(struct SHEET *sht);                                                                            /*ÊÍ·ÅÒÑÊ¹ÓÃÍ¼²ã¿Õ¼ä*/
+void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0, int h1); /*h0±íÊ¾ĞèÒªË¢ĞÂµÄÍ¼²ã*/
+void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*¼ÇÂ¼mapÍ¼²ã*/

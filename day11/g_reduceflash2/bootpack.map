@@ -1,4 +1,4 @@
-text size :   6843(0x01ABB)
+text size :   7427(0x01D03)
 data size :   4824(0x012D8)
 bss  size :      0(0x00000)
 
@@ -63,24 +63,25 @@ bss  size :      0(0x00000)
 0x00001107 : _memman_alloc
 0x0000116A : _memman_free
 0x00001251 : _memman_alloc_4k
-0x0000126A : _meman_free_4k
+0x0000126A : _memman_free_4k
 0x00001283 : _shtctl_init
 0x00001283 : (.text)
-0x000012D6 : _sheet_alloc
-0x00001309 : _sheet_setbuf
-0x00001328 : _sheet_updown
-0x00001404 : _sheet_refresh
-0x0000143D : _sheet_refreshsub
-0x00001579 : _sheet_slide
-0x000015D6 : _sheet_free
-0x000015F9 : (.text)
-0x000015F9 : _HariStartup
-0x00001602 : _sprintf
-0x00001602 : (.text)
-0x00001616 : (.text)
-0x00001652 : _strtoul0
-0x00001725 : (.text)
-0x0000174D : _vsprintf
+0x00001307 : _sheet_alloc
+0x0000133A : _sheet_setbuf
+0x00001359 : _sheet_updown
+0x0000149F : _sheet_refresh
+0x000014D9 : _sheet_refreshsub
+0x00001615 : _sheet_refreshmap
+0x00001772 : _sheet_slide
+0x0000181E : _sheet_free
+0x00001841 : (.text)
+0x00001841 : _HariStartup
+0x0000184A : _sprintf
+0x0000184A : (.text)
+0x0000185E : (.text)
+0x0000189A : _strtoul0
+0x0000196D : (.text)
+0x00001995 : _vsprintf
 0x00000000 : (.data)
 0x00000000 : (.data)
 0x00000000 : (.data)
