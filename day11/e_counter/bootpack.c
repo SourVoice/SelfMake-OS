@@ -14,7 +14,7 @@ void HariMain(void)
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
     unsigned char data;
-    unsigned int memtotal;
+    unsigned int memtotal, count = 0;
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR; /*memman需要32KB大小用于存储内存空间可用分配信息，我们使用从0x003c0000号地址以后*/
 
     struct SHTCTL *shtctl;
@@ -72,6 +72,12 @@ void HariMain(void)
 
     for (;;)
     {
+        count++;
+        sprintf(s, "%010d", count);
+        boxfill8(buf_win, 160, COL8_000000, 40, 28, 119, 43);
+        putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
+        sheet_refresh(sht_win, 40, 28, 120, 44);
+
         io_cli();                                                   /*屏蔽中断(一次只执行一次中断处理)*/
         if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) /*检查缓冲区,为空直接进入停机*/
         {
