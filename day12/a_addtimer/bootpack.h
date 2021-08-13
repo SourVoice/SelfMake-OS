@@ -23,7 +23,7 @@ unsigned int memtest_sub(unsigned int start, unsigned int end); /*内存检查*/
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
-
+void asm_inthandler20(void);
 /*bootpack.c*/
 //中断
 void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*暂时绘制窗口*/
@@ -198,3 +198,7 @@ void sheet_slide(struct SHEET *sht, int vram_x0, int vram_y0);
 void sheet_free(struct SHEET *sht);                                                                            /*释放已使用图层空间*/
 void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0, int h1); /*h0表示需要刷新的图层*/
 void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*记录map图层*/
+
+/*timer.c间隔型定时器*/
+void init_pit(void);         /*初始化PIT,即间隔定时器*/
+void inthandler20(int *esp); /*启用中断(汇编实现)*/

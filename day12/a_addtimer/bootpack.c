@@ -27,6 +27,7 @@ void HariMain(void)
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
+    initpit();               /*计时器间隔中断*/
     io_out8(PIC0_IMR, 0xf9); /*开放键盘中断*/
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 

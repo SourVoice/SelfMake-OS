@@ -20,6 +20,7 @@ void init_gdtidt(void)
     }
     load_idtr(LIMIT_IDT, ADR_IDT);
     /*设置中断*/
+    set_gatedesc(idt + 0x20, (int)asm_inthandler20, 2 * 8, AR_INTGATE32); /*asm_inthandler20注册进中断记录表(idt的第0x20号),中断时CPU调用asm_inthandler20,2*8表示asm_inthandler20属于哪一段,间隔计数器中断的注册*/
     set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8, AR_INTGATE32); /*asm_inthandler21注册进中断记录表(idt的第0x21号),中断时CPU调用asm_inthandler21,2*8表示asm_inthandler21属于哪一段*/
     set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 * 8, AR_INTGATE32);
     set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32); /*asm_inthandler2c注册进中断记录表(idt的第0x2c号),中断时CPU调用asm_inthandler2c,2*8表示asm_inthandler2c属于哪一段*/
