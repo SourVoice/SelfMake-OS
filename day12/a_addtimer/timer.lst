@@ -1,0 +1,32 @@
+     1 00000000                                 [FORMAT "WCOFF"]
+     2 00000000                                 [INSTRSET "i486p"]
+     3 00000000                                 [OPTIMIZE 1]
+     4 00000000                                 [OPTION 1]
+     5 00000000                                 [BITS 32]
+     6 00000000                                 	EXTERN	_io_out8
+     7 00000000                                 [FILE "timer.c"]
+     8                                          [SECTION .text]
+     9 00000000                                 	GLOBAL	_init_pit
+    10 00000000                                 _init_pit:
+    11 00000000 55                              	PUSH	EBP
+    12 00000001 89 E5                           	MOV	EBP,ESP
+    13 00000003 6A 34                           	PUSH	52
+    14 00000005 6A 43                           	PUSH	67
+    15 00000007 E8 [00000000]                   	CALL	_io_out8
+    16 0000000C 68 0000009C                     	PUSH	156
+    17 00000011 6A 40                           	PUSH	64
+    18 00000013 E8 [00000000]                   	CALL	_io_out8
+    19 00000018 6A 2E                           	PUSH	46
+    20 0000001A 6A 40                           	PUSH	64
+    21 0000001C E8 [00000000]                   	CALL	_io_out8
+    22 00000021 C9                              	LEAVE
+    23 00000022 C3                              	RET
+    24 00000023                                 	GLOBAL	_inthandler20
+    25 00000023                                 _inthandler20:
+    26 00000023 55                              	PUSH	EBP
+    27 00000024 89 E5                           	MOV	EBP,ESP
+    28 00000026 6A 60                           	PUSH	96
+    29 00000028 6A 20                           	PUSH	32
+    30 0000002A E8 [00000000]                   	CALL	_io_out8
+    31 0000002F C9                              	LEAVE
+    32 00000030 C3                              	RET

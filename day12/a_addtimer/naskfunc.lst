@@ -16,8 +16,8 @@
     16 00000000                                 GLOBAL          _load_gdtr,_load_idtr
     17 00000000                                 GLOBAL          _load_cr0,_store_cr0
     18 00000000                                 GLOBAL          _memtest_sub
-    19 00000000                                 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c
-    20 00000000                                 EXTERN          _inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
+    19 00000000                                 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
+    20 00000000                                 EXTERN          _inthandler21,_inthandler27,_inthandler2c,_inthandler20       ;中断处理程序 ,extern表示函数声明在外部   
     21                                          [SECTION .text]
     22 00000000                                 _io_hlt:                                ;void io_hlt(void),函数声明+定义
     23 00000000 F4                                      hlt
@@ -167,4 +167,18 @@
    167 000000FF 1F                                      pop     ds
    168 00000100 07                                      pop     es
    169 00000101 CF                                      IRETD                           
-   170 00000102                                  
+   170 00000102                                  _asm_inthandler20:
+   171 00000102 06                                      push    ES
+   172 00000103 1E                                      push    DS
+   173 00000104 60                                      PUSHAD
+   174 00000105 89 E0                                   mov     EAX,esp
+   175 00000107 50                                      push    EAX
+   176 00000108 66 8C D0                                mov     ax,SS
+   177 0000010B 8E D8                                   mov     ds,ax
+   178 0000010D 8E C0                                   mov     es,ax
+   179 0000010F E8 [00000000]                           call    _inthandler20
+   180 00000114 58                                      pop     eax
+   181 00000115 61                                      POPAD
+   182 00000116 1F                                      pop     ds
+   183 00000117 07                                      pop     es
+   184 00000118 CF                                      IRETD            
