@@ -200,5 +200,9 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1,
 void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*记录map图层*/
 
 /*timer.c间隔型定时器*/
+struct TIMERCTL
+{
+    unsigned int count; /*计数变量*/
+};
 void init_pit(void);         /*初始化PIT,即间隔定时器*/
 void inthandler20(int *esp); /*启用中断(汇编实现)*/

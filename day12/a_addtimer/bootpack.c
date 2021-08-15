@@ -3,6 +3,7 @@
 
 extern struct FIFO8 keyfifo; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 extern struct FIFO8 mousefifo;
+extern struct TIMERCTL timerctl;
 void HariMain(void)
 {
 
@@ -14,7 +15,7 @@ void HariMain(void)
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
     unsigned char data;
-    unsigned int memtotal, count = 0;
+    unsigned int memtotal;
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR; /*memman需要32KB大小用于存储内存空间可用分配信息，我们使用从0x003c0000号地址以后*/
 
     struct SHTCTL *shtctl;
@@ -27,7 +28,7 @@ void HariMain(void)
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
-    init_pit();               /*计时器间隔中断*/
+    init_pit();              /*计时器间隔中断*/
     io_out8(PIC0_IMR, 0xf9); /*开放键盘中断*/
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
@@ -73,8 +74,7 @@ void HariMain(void)
 
     for (;;)
     {
-        count++;
-        sprintf(s, "%010d", count);
+        sprintf(s, "%010d", timerctl.count);
         boxfill8(buf_win, 160, COL8_000000, 40, 28, 119, 43);
         putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
         sheet_refresh(sht_win, 40, 28, 120, 44);

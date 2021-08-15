@@ -17,7 +17,7 @@ GLOBAL          _load_gdtr,_load_idtr
 GLOBAL          _load_cr0,_store_cr0
 GLOBAL          _memtest_sub
 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
-EXTERN          _inthandler21,_inthandler27,_inthandler2c,_inthandler20       ;中断处理程序 ,extern表示函数声明在外部   
+EXTERN          _inthandler20,_inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
 [SECTION .text]
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
@@ -121,6 +121,21 @@ _memtest_sub:   ;unsigned int memtest_sub(unsigned int start,unsigned int end);(
                 pop     edi
                 RET
 ;中断信号处理器(PIC)
+ _asm_inthandler20:
+        push    ES
+        push    DS
+        PUSHAD
+        mov     EAX,esp
+        push    EAX
+        mov     ax,SS
+        mov     ds,ax
+        mov     es,ax
+        call    _inthandler20
+        pop     eax
+        POPAD
+        pop     ds
+        pop     es
+        IRETD            
 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
         push    ES
         push    DS
@@ -167,18 +182,3 @@ _asm_inthandler27:
         pop     ds
         pop     es
         IRETD                           
- _asm_inthandler20:
-        push    ES
-        push    DS
-        PUSHAD
-        mov     EAX,esp
-        push    EAX
-        mov     ax,SS
-        mov     ds,ax
-        mov     es,ax
-        call    _inthandler20
-        pop     eax
-        POPAD
-        pop     ds
-        pop     es
-        IRETD            

@@ -17,7 +17,7 @@
     17 00000000                                 GLOBAL          _load_cr0,_store_cr0
     18 00000000                                 GLOBAL          _memtest_sub
     19 00000000                                 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
-    20 00000000                                 EXTERN          _inthandler21,_inthandler27,_inthandler2c,_inthandler20       ;中断处理程序 ,extern表示函数声明在外部   
+    20 00000000                                 EXTERN          _inthandler20,_inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
     21                                          [SECTION .text]
     22 00000000                                 _io_hlt:                                ;void io_hlt(void),函数声明+定义
     23 00000000 F4                                      hlt
@@ -121,53 +121,53 @@
    121 000000BB 5F                                              pop     edi
    122 000000BC C3                                              RET
    123 000000BD                                 ;中断信号处理器(PIC)
-   124 000000BD                                 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
+   124 000000BD                                  _asm_inthandler20:
    125 000000BD 06                                      push    ES
    126 000000BE 1E                                      push    DS
    127 000000BF 60                                      PUSHAD
-   128 000000C0 89 E0                                   mov     EAX,ESP
+   128 000000C0 89 E0                                   mov     EAX,esp
    129 000000C2 50                                      push    EAX
    130 000000C3 66 8C D0                                mov     ax,SS
    131 000000C6 8E D8                                   mov     ds,ax
    132 000000C8 8E C0                                   mov     es,ax
-   133 000000CA E8 [00000000]                           call    _inthandler21
+   133 000000CA E8 [00000000]                           call    _inthandler20
    134 000000CF 58                                      pop     eax
    135 000000D0 61                                      POPAD
    136 000000D1 1F                                      pop     ds
    137 000000D2 07                                      pop     es
-   138 000000D3 CF                                      IRETD                           ;中断程序中只能使用IRETD返回
-   139 000000D4                                 _asm_inthandler27:                      
+   138 000000D3 CF                                      IRETD            
+   139 000000D4                                 _asm_inthandler21:                      ;使用栈结构将寄存器返回中断前状态
    140 000000D4 06                                      push    ES
    141 000000D5 1E                                      push    DS
    142 000000D6 60                                      PUSHAD
-   143 000000D7 89 E0                                   mov     EAX,esp
+   143 000000D7 89 E0                                   mov     EAX,ESP
    144 000000D9 50                                      push    EAX
    145 000000DA 66 8C D0                                mov     ax,SS
    146 000000DD 8E D8                                   mov     ds,ax
    147 000000DF 8E C0                                   mov     es,ax
-   148 000000E1 E8 [00000000]                           call    _inthandler27
+   148 000000E1 E8 [00000000]                           call    _inthandler21
    149 000000E6 58                                      pop     eax
    150 000000E7 61                                      POPAD
    151 000000E8 1F                                      pop     ds
    152 000000E9 07                                      pop     es
-   153 000000EA CF                                      IRETD                           
-   154 000000EB                                  
-   155 000000EB                                  _asm_inthandler2c:                      
-   156 000000EB 06                                      push    ES
-   157 000000EC 1E                                      push    DS
-   158 000000ED 60                                      PUSHAD
-   159 000000EE 89 E0                                   mov     EAX,esp
-   160 000000F0 50                                      push    EAX
-   161 000000F1 66 8C D0                                mov     ax,SS
-   162 000000F4 8E D8                                   mov     ds,ax
-   163 000000F6 8E C0                                   mov     es,ax
-   164 000000F8 E8 [00000000]                           call    _inthandler2c
-   165 000000FD 58                                      pop     eax
-   166 000000FE 61                                      POPAD
-   167 000000FF 1F                                      pop     ds
-   168 00000100 07                                      pop     es
-   169 00000101 CF                                      IRETD                           
-   170 00000102                                  _asm_inthandler20:
+   153 000000EA CF                                      IRETD                           ;中断程序中只能使用IRETD返回
+   154 000000EB                                 _asm_inthandler27:                      
+   155 000000EB 06                                      push    ES
+   156 000000EC 1E                                      push    DS
+   157 000000ED 60                                      PUSHAD
+   158 000000EE 89 E0                                   mov     EAX,esp
+   159 000000F0 50                                      push    EAX
+   160 000000F1 66 8C D0                                mov     ax,SS
+   161 000000F4 8E D8                                   mov     ds,ax
+   162 000000F6 8E C0                                   mov     es,ax
+   163 000000F8 E8 [00000000]                           call    _inthandler27
+   164 000000FD 58                                      pop     eax
+   165 000000FE 61                                      POPAD
+   166 000000FF 1F                                      pop     ds
+   167 00000100 07                                      pop     es
+   168 00000101 CF                                      IRETD                           
+   169 00000102                                  
+   170 00000102                                  _asm_inthandler2c:                      
    171 00000102 06                                      push    ES
    172 00000103 1E                                      push    DS
    173 00000104 60                                      PUSHAD
@@ -176,9 +176,9 @@
    176 00000108 66 8C D0                                mov     ax,SS
    177 0000010B 8E D8                                   mov     ds,ax
    178 0000010D 8E C0                                   mov     es,ax
-   179 0000010F E8 [00000000]                           call    _inthandler20
+   179 0000010F E8 [00000000]                           call    _inthandler2c
    180 00000114 58                                      pop     eax
    181 00000115 61                                      POPAD
    182 00000116 1F                                      pop     ds
    183 00000117 07                                      pop     es
-   184 00000118 CF                                      IRETD            
+   184 00000118 CF                                      IRETD                           

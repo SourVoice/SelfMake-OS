@@ -19,14 +19,21 @@
     19 00000018 6A 2E                           	PUSH	46
     20 0000001A 6A 40                           	PUSH	64
     21 0000001C E8 [00000000]                   	CALL	_io_out8
-    22 00000021 C9                              	LEAVE
-    23 00000022 C3                              	RET
-    24 00000023                                 	GLOBAL	_inthandler20
-    25 00000023                                 _inthandler20:
-    26 00000023 55                              	PUSH	EBP
-    27 00000024 89 E5                           	MOV	EBP,ESP
-    28 00000026 6A 60                           	PUSH	96
-    29 00000028 6A 20                           	PUSH	32
-    30 0000002A E8 [00000000]                   	CALL	_io_out8
-    31 0000002F C9                              	LEAVE
-    32 00000030 C3                              	RET
+    22 00000021 C7 05 [00000000] 00000000       	MOV	DWORD [_timerctl],0
+    23 0000002B C9                              	LEAVE
+    24 0000002C C3                              	RET
+    25 0000002D                                 	GLOBAL	_inthandler20
+    26 0000002D                                 _inthandler20:
+    27 0000002D 55                              	PUSH	EBP
+    28 0000002E 89 E5                           	MOV	EBP,ESP
+    29 00000030 6A 60                           	PUSH	96
+    30 00000032 6A 20                           	PUSH	32
+    31 00000034 E8 [00000000]                   	CALL	_io_out8
+    32 00000039 FF 05 [00000000]                	INC	DWORD [_timerctl]
+    33 0000003F C9                              	LEAVE
+    34 00000040 C3                              	RET
+    35 00000041                                 	GLOBAL	_timerctl
+    36                                          [SECTION .data]
+    37 00000000                                 	ALIGNB	4
+    38 00000000                                 _timerctl:
+    39 00000000 00 00 00 00                     	RESB	4
