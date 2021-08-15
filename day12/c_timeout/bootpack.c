@@ -4,13 +4,15 @@
 extern struct FIFO8 keyfifo; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 extern struct FIFO8 mousefifo;
 extern struct TIMERCTL timerctl;
+extern struct FIFO8 *timerfifo;
+
 void HariMain(void)
 {
 
     struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     int xsize = binfo->scrnx, ysize = binfo->scrny;
     char *vram = binfo->vram;
-    char s[40], keybuf[32], mousebuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
+    char s[40], keybuf[32], mousebuf[128], timerbuf[8]; /*mousebuf 消息中断缓存与下面有区别*/
     int mouse_x = 0, mouse_y = 0;
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
@@ -28,9 +30,11 @@ void HariMain(void)
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
-    init_pit();              /*计时器间隔中断*/
-    io_out8(PIC0_IMR, 0xf8); /*开放键盘中断(更改端口号使PIC1和PIT和键盘均为许可)*/
-    io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
+    fifo8_init(&timerfifo, 8, timerbuf);
+    settimer(1000, &timerfifo, 1); /*timeout后向fifo写入1*/
+    init_pit();                    /*计时器间隔中断*/
+    io_out8(PIC0_IMR, 0xf8);       /*开放键盘中断(更改端口号使PIC1和PIT和键盘均为许可)*/
+    io_out8(PIC1_IMR, 0xef);       /*开放鼠标中断*/
 
     /*中断*/
     init_keyboard();     /*键盘接受至栈打开*/
@@ -79,10 +83,10 @@ void HariMain(void)
         putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
         sheet_refresh(sht_win, 40, 28, 120, 44);
 
-        io_cli();                                                   /*屏蔽中断(一次只执行一次中断处理)*/
-        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) /*检查缓冲区,为空直接进入停机*/
+        io_cli();                                                                              /*屏蔽中断(一次只执行一次中断处理)*/
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) + fifo8_status(&timerfifo) == 0) /*检查缓冲区,为空直接进入停机*/
         {
-            io_stihlt();
+            io_sti(); /*shihlt改为了sti*/
         }
         else
         {
@@ -143,6 +147,13 @@ void HariMain(void)
                     sheet_refresh(sht_back, 0, 0, 80, 16);                /*向buf_back写入信息时进行refresh*/
                     sheet_slide(sht_mouse, mouse_x, mouse_y);             /*含refresh*/
                 }
+            }
+            else if (fifo8_status(&timerfifo) != 0)
+            {
+                data = fifo8_get(&timerfifo);
+                io_sti();
+                putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 64, "10[sec");
+                sheet_refresh(sht_back, 0, 64, 56, 80);
             }
         }
     }
