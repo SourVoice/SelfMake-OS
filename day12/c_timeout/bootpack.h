@@ -200,13 +200,28 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1,
 void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*记录map图层*/
 
 /*timer.c间隔型定时器*/
-struct TIMERCTL
+#define PIT_CTRL 0x0043
+#define PIT_CNT0 0x0040 /*PIT和IRQ0相连*/
+#define MAX_TIMER 500   /*定时器最多设为500个*/
+
+#define TIMER_FLAGS_ALLOC 1 /*已配置状态*/
+#define TIMER_FLAGS_USING 2 /*定时器运行中*/
+struct TIMER
 {
-    unsigned int count;   /*计数变量*/
     unsigned int timeout; /*记录超时数据(表示一个范围,timeout到达0后,程序向缓冲区发送数据)*/
+    unsigned int flags;   /*用于记录各个定时器状态*/
     struct FIFO8 *fifo;
     unsigned char data;
+};
+struct TIMERCTL
+{
+    unsigned int count; /*计数变量*/
+    struct TIMER timer[MAX_SHEETS];
 };
 void init_pit(void);         /*初始化PIT,即间隔定时器*/
 void inthandler20(int *esp); /*启用中断(汇编实现)*/
 void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data);
+struct TIMER *timer_alloc(void);
+void timer_free(struct TIMER *timer);
+void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data);
+void timer_settime(struct TIMER *timer, unsigned int timeout);

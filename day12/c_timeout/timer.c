@@ -1,41 +1,67 @@
 #include "bootpack.h"
 
-#define PIT_CTRL 0x0043
-#define PIT_CNT0 0x0040 /*PIT和IRQ0相连*/
-
 struct TIMERCTL timerctl;
 struct FIFO8 timerfifo; /*时钟数据缓存区*/
 void init_pit(void)
 {
+    int i;
     io_out8(PIT_CTRL, 0x34);
     io_out8(PIT_CNT0, 0x9c);
     io_out8(PIT_CNT0, 0x2e); //上面两行写入0x2e9c,为中断频率
     timerctl.count = 0;
-    timerctl.timeout = 0;
+    for (i = 0; i < MAX_TIMER; i++)
+    {
+        timerctl.timer[i].flags = 0; /*未使用*/
+    }
+    return;
+}
+struct TIMER *timer_alloc(void)
+{
+    int i;
+    for (i = 0; i < MAX_TIMER; i++)
+    {
+        if (timerctl.timer[i].flags == 0)
+        {
+            timerctl.timer[i].flags = TIMER_FLAGS_ALLOC;
+            return &timerctl.timer[i];
+        }
+    }
+    return 0;
+}
+void timer_free(struct TIMER *timer)
+{
+    timer->flags = 0;
+    return;
+}
+void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned int data)
+{
+    timer->fifo = fifo;
+    timer->data = data;
+    return;
+}
+void timer_settime(struct TIMER *timer, unsigned int timeout)
+{
+    timer->timeout = timeout;
+    timer->flags = TIMER_FLAGS_USING;
     return;
 }
 void inthandler20(int *esp)
 {
-    io_out8(PIC0_OCW2, 0x60); /*接收IRQ-00信号通知PIC*/
+    int i;
+    io_out8(PIC0_OCW2, 0x60); /*IRQ-00信号接受结束通知至PIC*/
     timerctl.count++;         /*定时器中断时,计数变量+1*/
-    if (timerctl.timeout > 0) /*超时后写入缓冲区*/
+    for (i = 0; i < MAX_TIMER; i++)
     {
-        timerctl.timeout--;
-        if (timerctl.timeout == 0)
+        if (timerctl.timer[i].flags == TIMER_FLAGS_USING)
         {
-            fifo8_put(timerctl.fifo, timerctl.data);
+            timerctl.timer[i].timeout--;
+            if (timerctl.timer[i].timeout == 0)
+            {
+
+                timerctl.timer[i].flags = TIMER_FLAGS_ALLOC;
+                fifo8_put(timerctl.timer[i].fifo, timerctl.timer[i].data);
+            }
         }
     }
-    return;
-}
-void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data)
-{
-    int eflags;
-    eflags = io_load_eflags();
-    io_cli(); /*禁止中断后再设置参数*/
-    timerctl.timeout = timeout;
-    timerctl.fifo = fifo;
-    timerctl.data = data;
-    io_store_eflags(eflags); /*参数更新完毕后开放中断*/
     return;
 }

@@ -4,7 +4,7 @@
 extern struct FIFO8 keyfifo; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 extern struct FIFO8 mousefifo;
 extern struct TIMERCTL timerctl;
-extern struct FIFO8 *timerfifo;
+extern struct FIFO8 *timerfifo, *timerfifo2, *timerfifo3;
 
 void HariMain(void)
 {
@@ -12,7 +12,8 @@ void HariMain(void)
     struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     int xsize = binfo->scrnx, ysize = binfo->scrny;
     char *vram = binfo->vram;
-    char s[40], keybuf[32], mousebuf[128], timerbuf[8]; /*mousebuf 消息中断缓存与下面有区别*/
+    char s[40], keybuf[32], mousebuf[128], timerbuf[8], timerbuf2[8], timerbuf3[8]; /*mousebuf 消息中断缓存与下面有区别*/
+    struct TIMER *timer, *timer2, *timer3;
     int mouse_x = 0, mouse_y = 0;
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
@@ -30,11 +31,23 @@ void HariMain(void)
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
+
+    /*时钟中断设置*/
     fifo8_init(&timerfifo, 8, timerbuf);
-    settimer(1000, &timerfifo, 1); /*timeout后向fifo写入1*/
-    init_pit();                    /*计时器间隔中断*/
-    io_out8(PIC0_IMR, 0xf8);       /*开放键盘中断(更改端口号使PIC1和PIT和键盘均为许可)*/
-    io_out8(PIC1_IMR, 0xef);       /*开放鼠标中断*/
+    timer = timer_alloc();
+    timer_init(timer, &timerfifo, 8, timerbuf2);
+    timer_settime(timer, 1000);
+    timer2 = timer_alloc();
+    timer_init(timer2, &timerfifo2, 1);
+    timer_settime(timer2, 300);
+    fifo8_init(&timerfifo3, 8, timerbuf3);
+    timer3 = timer_alloc();
+    timer_init(timer3, &timerfifo3, 1);
+    timer_settime(timer3, 50);
+
+    init_pit();              /*计时器间隔中断*/
+    io_out8(PIC0_IMR, 0xf8); /*开放键盘中断(更改端口号使PIC1和PIT和键盘均为许可)*/
+    io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
     /*中断*/
     init_keyboard();     /*键盘接受至栈打开*/
@@ -83,8 +96,12 @@ void HariMain(void)
         putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
         sheet_refresh(sht_win, 40, 28, 120, 44);
 
-        io_cli();                                                                              /*屏蔽中断(一次只执行一次中断处理)*/
-        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) + fifo8_status(&timerfifo) == 0) /*检查缓冲区,为空直接进入停机*/
+        io_cli(); /*屏蔽中断(一次只执行一次中断处理)*/
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +
+                fifo8_status(&timerfifo) +
+                fifo8_status(&timerfifo2) +
+                fifo8_status(&timerfifo3) ==
+            0) /*检查缓冲区,为空直接进入停机*/
         {
             io_sti(); /*shihlt改为了sti*/
         }
@@ -154,6 +171,30 @@ void HariMain(void)
                 io_sti();
                 putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 64, "10[sec");
                 sheet_refresh(sht_back, 0, 64, 56, 80);
+            }
+            else if (fifo8_status(&timerfifo2) != -0)
+            {
+                data = fifo8_get(&timerfifo2);
+                io_sti();
+                putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 80, "3[sec");
+                sheet_refresh(sht_back, 0, 80, 48, 96);
+            }
+            else if (fifo8_status(&timerfifo3) != 0) /*模拟光标*/
+            {
+                data = fifo8_get(&timerfifo3);
+                io_sti();
+                if (data != 0)
+                {
+                    timer_init(timer3, &timerfifo3, 0);
+                    boxfill8(buf_back, xsize, COL8_ffffff, 8, 96, 15, 111);
+                }
+                else
+                {
+                    timer_init(timer3, &timerfifo3, 1);
+                    boxfill8(buf_back, xsize, COL8_008484, 8, 96, 15, 111);
+                }
+                timer_settime(timer3, 50);
+                sheet_refresh(sht_back, 8, 96, 16, 112);
             }
         }
     }
