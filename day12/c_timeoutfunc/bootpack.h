@@ -203,6 +203,10 @@ void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
 struct TIMERCTL
 {
     unsigned int count; /*计数变量*/
+    unsigned int timeout;
+    struct FIFO8 *fifo;
+    unsigned char data;
 };
-void init_pit(void);         /*初始化PIT,即间隔定时器*/
-void inthandler20(int *esp); /*启用中断(汇编实现)*/
+void init_pit(void);                                                         /*初始化PIT,即间隔定时器*/
+void inthandler20(int *esp);                                                 /*启用中断(汇编实现)*/
+void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data); /*该timer设定*/

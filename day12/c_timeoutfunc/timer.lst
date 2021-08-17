@@ -4,36 +4,93 @@
      4 00000000                                 [OPTION 1]
      5 00000000                                 [BITS 32]
      6 00000000                                 	EXTERN	_io_out8
-     7 00000000                                 [FILE "timer.c"]
-     8                                          [SECTION .text]
-     9 00000000                                 	GLOBAL	_init_pit
-    10 00000000                                 _init_pit:
-    11 00000000 55                              	PUSH	EBP
-    12 00000001 89 E5                           	MOV	EBP,ESP
-    13 00000003 6A 34                           	PUSH	52
-    14 00000005 6A 43                           	PUSH	67
-    15 00000007 E8 [00000000]                   	CALL	_io_out8
-    16 0000000C 68 0000009C                     	PUSH	156
-    17 00000011 6A 40                           	PUSH	64
-    18 00000013 E8 [00000000]                   	CALL	_io_out8
-    19 00000018 6A 2E                           	PUSH	46
-    20 0000001A 6A 40                           	PUSH	64
-    21 0000001C E8 [00000000]                   	CALL	_io_out8
-    22 00000021 C7 05 [00000000] 00000000       	MOV	DWORD [_timerctl],0
-    23 0000002B C9                              	LEAVE
-    24 0000002C C3                              	RET
-    25 0000002D                                 	GLOBAL	_inthandler20
-    26 0000002D                                 _inthandler20:
-    27 0000002D 55                              	PUSH	EBP
-    28 0000002E 89 E5                           	MOV	EBP,ESP
-    29 00000030 6A 60                           	PUSH	96
-    30 00000032 6A 20                           	PUSH	32
-    31 00000034 E8 [00000000]                   	CALL	_io_out8
-    32 00000039 FF 05 [00000000]                	INC	DWORD [_timerctl]
-    33 0000003F C9                              	LEAVE
-    34 00000040 C3                              	RET
-    35 00000041                                 	GLOBAL	_timerctl
-    36                                          [SECTION .data]
-    37 00000000                                 	ALIGNB	4
-    38 00000000                                 _timerctl:
-    39 00000000 00 00 00 00                     	RESB	4
+     7 00000000                                 	EXTERN	_fifo8_put
+     8 00000000                                 	EXTERN	_io_load_eflags
+     9 00000000                                 	EXTERN	_io_cli
+    10 00000000                                 	EXTERN	_io_store_eflags
+    11 00000000                                 [FILE "timer.c"]
+    12                                          [SECTION .text]
+    13 00000000                                 	GLOBAL	_init_pit
+    14 00000000                                 _init_pit:
+    15 00000000 55                              	PUSH	EBP
+    16 00000001 89 E5                           	MOV	EBP,ESP
+    17 00000003 6A 34                           	PUSH	52
+    18 00000005 6A 43                           	PUSH	67
+    19 00000007 E8 [00000000]                   	CALL	_io_out8
+    20 0000000C 68 0000009C                     	PUSH	156
+    21 00000011 6A 40                           	PUSH	64
+    22 00000013 E8 [00000000]                   	CALL	_io_out8
+    23 00000018 6A 2E                           	PUSH	46
+    24 0000001A 6A 40                           	PUSH	64
+    25 0000001C E8 [00000000]                   	CALL	_io_out8
+    26 00000021 C7 05 [00000020] 00000000       	MOV	DWORD [_timerctl],0
+    27 0000002B C7 05 [00000024] 00000000       	MOV	DWORD [_timerctl+4],0
+    28 00000035 C9                              	LEAVE
+    29 00000036 C3                              	RET
+    30 00000037                                 	GLOBAL	_inthandler20
+    31 00000037                                 _inthandler20:
+    32 00000037 55                              	PUSH	EBP
+    33 00000038 89 E5                           	MOV	EBP,ESP
+    34 0000003A 6A 60                           	PUSH	96
+    35 0000003C 6A 20                           	PUSH	32
+    36 0000003E E8 [00000000]                   	CALL	_io_out8
+    37 00000043 59                              	POP	ECX
+    38 00000044 58                              	POP	EAX
+    39 00000045 FF 05 [00000020]                	INC	DWORD [_timerctl]
+    40 0000004B A1 [00000024]                   	MOV	EAX,DWORD [_timerctl+4]
+    41 00000050 85 C0                           	TEST	EAX,EAX
+    42 00000052 74 0A                           	JE	L2
+    43 00000054 48                              	DEC	EAX
+    44 00000055 A3 [00000024]                   	MOV	DWORD [_timerctl+4],EAX
+    45 0000005A 85 C0                           	TEST	EAX,EAX
+    46 0000005C 74 02                           	JE	L5
+    47 0000005E                                 L2:
+    48 0000005E C9                              	LEAVE
+    49 0000005F C3                              	RET
+    50 00000060                                 L5:
+    51 00000060 0F B6 05 [0000002C]             	MOVZX	EAX,BYTE [_timerctl+12]
+    52 00000067 50                              	PUSH	EAX
+    53 00000068 FF 35 [00000028]                	PUSH	DWORD [_timerctl+8]
+    54 0000006E E8 [00000000]                   	CALL	_fifo8_put
+    55 00000073 58                              	POP	EAX
+    56 00000074 5A                              	POP	EDX
+    57 00000075 EB E7                           	JMP	L2
+    58 00000077                                 	GLOBAL	_settimer
+    59 00000077                                 _settimer:
+    60 00000077 55                              	PUSH	EBP
+    61 00000078 89 E5                           	MOV	EBP,ESP
+    62 0000007A 57                              	PUSH	EDI
+    63 0000007B 56                              	PUSH	ESI
+    64 0000007C 53                              	PUSH	EBX
+    65 0000007D 50                              	PUSH	EAX
+    66 0000007E 8B 45 10                        	MOV	EAX,DWORD [16+EBP]
+    67 00000081 8B 75 08                        	MOV	ESI,DWORD [8+EBP]
+    68 00000084 89 45 F0                        	MOV	DWORD [-16+EBP],EAX
+    69 00000087 8B 7D 0C                        	MOV	EDI,DWORD [12+EBP]
+    70 0000008A E8 [00000000]                   	CALL	_io_load_eflags
+    71 0000008F 89 C3                           	MOV	EBX,EAX
+    72 00000091 E8 [00000000]                   	CALL	_io_cli
+    73 00000096 8A 45 F0                        	MOV	AL,BYTE [-16+EBP]
+    74 00000099 89 35 [00000024]                	MOV	DWORD [_timerctl+4],ESI
+    75 0000009F 89 3D [00000028]                	MOV	DWORD [_timerctl+8],EDI
+    76 000000A5 A2 [0000002C]                   	MOV	BYTE [_timerctl+12],AL
+    77 000000AA 89 5D 08                        	MOV	DWORD [8+EBP],EBX
+    78 000000AD 58                              	POP	EAX
+    79 000000AE 5B                              	POP	EBX
+    80 000000AF 5E                              	POP	ESI
+    81 000000B0 5F                              	POP	EDI
+    82 000000B1 5D                              	POP	EBP
+    83 000000B2 E9 [00000000]                   	JMP	_io_store_eflags
+    84 000000B7                                 	GLOBAL	_timerfifo
+    85                                          [SECTION .data]
+    86 00000000                                 	ALIGNB	16
+    87 00000000                                 _timerfifo:
+    88 00000000 00 00 00 00 00 00 00 00 00 00   	RESB	24
+       0000000A 00 00 00 00 00 00 00 00 00 00 
+       00000014 00 00 00 00 
+    89 00000018                                 	GLOBAL	_timerctl
+    90                                          [SECTION .data]
+    91 00000018 00 00 00 00 00 00 00 00         	ALIGNB	16
+    92 00000020                                 _timerctl:
+    93 00000020 00 00 00 00 00 00 00 00 00 00   	RESB	16
+       0000002A 00 00 00 00 00 00 
