@@ -215,7 +215,7 @@ struct TIMER
 };
 struct TIMERCTL
 {
-    unsigned int count; /*计数变量*/
+    unsigned int count, next; /*计数变量*/
     struct TIMER timer[MAX_SHEETS];
 };
 void init_pit(void);         /*初始化PIT,即间隔定时器*/
