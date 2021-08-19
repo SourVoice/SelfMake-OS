@@ -215,8 +215,9 @@ struct TIMER
 };
 struct TIMERCTL
 {
-    unsigned int count, next; /*计数变量*/
-    struct TIMER timer[MAX_SHEETS];
+    unsigned int count, next, using; /*计数变量*/
+    struct TIMER *timers[MAX_TIMER]; /*地址表*/
+    struct TIMER timers0[MAX_TIMER];
 };
 void init_pit(void);         /*初始化PIT,即间隔定时器*/
 void inthandler20(int *esp); /*启用中断(汇编实现)*/
