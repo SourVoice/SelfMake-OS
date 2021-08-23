@@ -93,9 +93,10 @@ void HariMain(void)
     for (;;)
     {
         sprintf(s, "%010d", timerctl.count);
-        boxfill8(buf_win, 160, COL8_000000, 40, 28, 119, 43);
-        putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
-        sheet_refresh(sht_win, 40, 28, 120, 44);
+        putfonts_asc_sht(sht_win, 40, 28, COL8_c6c6c6, COL8_000000, s, 10);
+        // boxfill8(buf_win, 160, COL8_000000, 40, 28, 119, 43);
+        // putfonts8_asc(buf_win, 160, COL8_c6c6c6, 40, 28, s); /*这里我把颜色调换更清楚*/
+        // sheet_refresh(sht_win, 40, 28, 120, 44);
 
         io_cli(); /*屏蔽中断(一次只执行一次中断处理)*/
         if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +
@@ -114,9 +115,10 @@ void HariMain(void)
                 data = fifo8_get(&keyfifo);
                 io_sti();
                 sprintf(s, "%02x", data);
-                boxfill8(buf_back, xsize, COL8_008484, 0, 16, 15, 31);
-                putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 16, s);
-                sheet_refresh(sht_back, 0, 0, xsize, 48);
+                putfonts_asc_sht(sht_back, 0, 16, COL8_ffffff, COL8_008484, s, 2);
+                // boxfill8(buf_back, xsize,, 0, 16, 15, 31);
+                // putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 16, s);
+                // sheet_refresh(sht_back, 0, 0, xsize, 48);
             }
             else if (fifo8_status(&mousefifo) != 0)
             {
@@ -137,9 +139,10 @@ void HariMain(void)
                     {
                         s[2] = 'C';
                     }
-                    boxfill8(buf_back, xsize, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
-                    putfonts8_asc(buf_back, xsize, COL8_ffffff, 32, 16, s);
-                    sheet_refresh(sht_back, 32, 16, 32 + 15 * 8, 32);
+                    putfonts_asc_sht(sht_back, 32, 16, COL8_ffffff, COL8_008484, s, 15);
+                    // boxfill8(buf_back, xsize, COL8_008484, 32, 16, 32 + 15 * 8 - 1, 31);
+                    // putfonts8_asc(buf_back, xsize, COL8_ffffff, 32, 16, s);
+                    // sheet_refresh(sht_back, 32, 16, 32 + 15 * 8, 32);
                     /*移动指针*/
                     mouse_x += mdec.x;
                     mouse_y += mdec.y;
@@ -160,10 +163,11 @@ void HariMain(void)
                         mouse_y = ysize - 1;
                     }
                     sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
-                    boxfill8(buf_back, xsize, COL8_008484, 0, 0, 79, 15); /*隐藏坐标*/
-                    putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 0, s); /*显示坐标*/
-                    sheet_refresh(sht_back, 0, 0, 80, 16);                /*向buf_back写入信息时进行refresh*/
-                    sheet_slide(sht_mouse, mouse_x, mouse_y);             /*含refresh*/
+                    putfonts_asc_sht(sht_back, 0, 0, COL8_ffffff, COL8_008484, s, 10);
+                    // boxfill8(buf_back, xsize, COL8_008484, 0, 0, 79, 15); /*隐藏坐标*/
+                    // putfonts8_asc(buf_back, xsize, COL8_ffffff, 0, 0, s); /*显示坐标*/
+                    // sheet_refresh(sht_back, 0, 0, 80, 16);                /*向buf_back写入信息时进行refresh*/
+                    sheet_slide(sht_mouse, mouse_x, mouse_y); /*含refresh*/
                 }
             }
             else if (fifo8_status(&timerfifo) != 0)

@@ -28,6 +28,34 @@ void asm_inthandler20(void);
 //ÖĞ¶Ï
 void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*ÔİÊ±»æÖÆ´°¿Ú*/
 
+/*sheet.c´°¿Úµş¼Ó*/
+#define MAX_SHEETS 256 /*ËùÄÜ¹ÜÀíµÄ×î´óÍ¼²ãÊı*/
+#define SHEET_USE 1
+struct SHEET
+{
+    unsigned char *buf;           /*Í¼²ãÄÚÈİ(µÄµØÖ·)*/
+    int bxsize, bysize;           /*Í¼²ã´óĞ¡ b for buffer*/
+    int vram_x0, vram_y0;         /*Í¼²ãÎ»ÖÃ*/
+    int color_inv, height, flags; /*Í¸Ã÷É«É«ºÅ,Í¼²ã¸ß¶È,Í¼²ãĞÅÏ¢Éè¶¨*/
+    struct SHTCTL *ctl;           /*SHEETÖĞ´æÈëctl(Ò»Ğ©sheetÀàº¯ÊıÖĞ¿ÉÒÔ²»ÓÃÖ¸¶¨ctl)*/
+};
+struct SHTCTL /*Í¼²ã¹ÜÀí*/
+{
+    unsigned char *vram, *map;
+    int xsize, ysize, top;
+    struct SHEET *sheets[MAX_SHEETS]; /*Í¼²ãµØÖ·,sheets0ÖĞÅÅÁĞºÃºó,µØÖ·Ğ´Èësheets*/
+    struct SHEET sheets0[MAX_SHEETS]; /*Í¼²ãÄÚÈİ*/
+};
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl); /*Éú³ÉÍ¼²ã,ĞÅÏ¢ÌîÈë½á¹¹*/
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int color_inv);
+void sheet_updown(struct SHEET *sht, int height);
+void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1); /*´ÓÏÂµ½ÉÏÃè»æËùÓĞÍ¼²ã*/
+void sheet_slide(struct SHEET *sht, int vram_x0, int vram_y0);
+void sheet_free(struct SHEET *sht);                                                                            /*ÊÍ·ÅÒÑÊ¹ÓÃÍ¼²ã¿Õ¼ä*/
+void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0, int h1); /*h0±íÊ¾ĞèÒªË¢ĞÂµÄÍ¼²ã*/
+void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*¼ÇÂ¼mapÍ¼²ã*/
+
 /*graphic.cÆÁÄ»»æÖÆº¯ÊıÉùÃ÷*/
 
 void init_palette(void);
@@ -40,6 +68,7 @@ void putfonts8_asc(unsigned char *vram, int xsize, unsigned char color, int x, i
 void init_mouse_cursor8(char *mouse, char bc_color);
 void putblock8_8(char *vram, int vxsize, int pxsize, int pysize,
                  int px0, int py0, char *buf, int bxsize);
+void putfonts_asc_sht(struct SHEET *sht, int x, int y, int color, int bg_color, char *s, int l); /*¼¯³Éboxfill,putfonts8_asc,sheet_refresh*/
 
 /*dsctbl.cÈ«¾Ö¶Î¼ÇÂ¼±íºÍÖĞ¶Ï¼ÇÂ¼±íÉè¶¨º¯ÊıÉùÃ÷*/
 struct SEGMENT_DESCRIPTOR
@@ -170,34 +199,6 @@ unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);          /*ÄÚ´
 int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size); /*ÄÚ´æÊÍ·Å(MEMMAN¸üĞÂ¿ÉÓÃĞÅÏ¢)*/
 unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);       /*4kÎªµ¥Î»½øĞĞÄÚ´æ·ÖÅä(È¡Éá´¦Àí)*/
 int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
-
-/*sheet.c´°¿Úµş¼Ó*/
-#define MAX_SHEETS 256 /*ËùÄÜ¹ÜÀíµÄ×î´óÍ¼²ãÊı*/
-#define SHEET_USE 1
-struct SHEET
-{
-    unsigned char *buf;           /*Í¼²ãÄÚÈİ(µÄµØÖ·)*/
-    int bxsize, bysize;           /*Í¼²ã´óĞ¡ b for buffer*/
-    int vram_x0, vram_y0;         /*Í¼²ãÎ»ÖÃ*/
-    int color_inv, height, flags; /*Í¸Ã÷É«É«ºÅ,Í¼²ã¸ß¶È,Í¼²ãĞÅÏ¢Éè¶¨*/
-    struct SHTCTL *ctl;           /*SHEETÖĞ´æÈëctl(Ò»Ğ©sheetÀàº¯ÊıÖĞ¿ÉÒÔ²»ÓÃÖ¸¶¨ctl)*/
-};
-struct SHTCTL /*Í¼²ã¹ÜÀí*/
-{
-    unsigned char *vram, *map;
-    int xsize, ysize, top;
-    struct SHEET *sheets[MAX_SHEETS]; /*Í¼²ãµØÖ·,sheets0ÖĞÅÅÁĞºÃºó,µØÖ·Ğ´Èësheets*/
-    struct SHEET sheets0[MAX_SHEETS]; /*Í¼²ãÄÚÈİ*/
-};
-struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
-struct SHEET *sheet_alloc(struct SHTCTL *ctl); /*Éú³ÉÍ¼²ã,ĞÅÏ¢ÌîÈë½á¹¹*/
-void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int color_inv);
-void sheet_updown(struct SHEET *sht, int height);
-void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1); /*´ÓÏÂµ½ÉÏÃè»æËùÓĞÍ¼²ã*/
-void sheet_slide(struct SHEET *sht, int vram_x0, int vram_y0);
-void sheet_free(struct SHEET *sht);                                                                            /*ÊÍ·ÅÒÑÊ¹ÓÃÍ¼²ã¿Õ¼ä*/
-void sheet_refreshsub(struct SHTCTL *ctl, int vram_x0, int vram_y0, int vram_x1, int vram_y1, int h0, int h1); /*h0±íÊ¾ĞèÒªË¢ĞÂµÄÍ¼²ã*/
-void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, int h0);                         /*¼ÇÂ¼mapÍ¼²ã*/
 
 /*timer.c¼ä¸ôĞÍ¶¨Ê±Æ÷*/
 #define PIT_CTRL 0x0043

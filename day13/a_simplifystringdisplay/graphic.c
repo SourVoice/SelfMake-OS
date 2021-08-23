@@ -167,3 +167,11 @@ void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0, int py
     }
     return;
 }
+void putfonts_asc_sht(struct SHEET *sht, int x, int y, int color, int bg_color, char *s, int l)
+/*x,yÏÔÊ¾×ø±êÎ»ÖÃ,c for ×Ö·ûÑÕÉ«,b for ±³¾°ÑÕÉ« ,s for string, l for length of string*/
+{
+    boxfill8(sht->buf, sht->bxsize, bg_color, x, y, x + l * 8 - 1, y + 15);
+    putfonts8_asc(sht->buf, sht->bxsize, color, x, y, s);
+    sheet_refresh(sht, x, y, x + 1 * 8, y + 16);
+    return;
+}
