@@ -1,7 +1,7 @@
 #include "bootpack.h"
 
 struct TIMERCTL timerctl;
-struct FIFO8 timerfifo, timerfifo2, timerfifo3; /*时钟数据缓存区*/
+struct FIFO8 timerfifo; /*时钟数据缓存区*/
 void init_pit(void)
 {
     int i;

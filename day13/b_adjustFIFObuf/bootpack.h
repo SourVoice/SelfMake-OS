@@ -28,6 +28,35 @@ void asm_inthandler20(void);
 //ÖĞ¶Ï
 void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*ÔİÊ±»æÖÆ´°¿Ú*/
 
+/*memory.c*/
+//ÄÚ´æ¼ì²é,ÄÚ´æ·ÖÅä
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000 /*»º´æ½ûÓÃ*/
+#define MEMMAN_FREES 4090            /*32KB*/
+#define MEMMAN_ADDR 0x003c0000
+
+struct FREEINFO /*ÄÚ´æ¿ÉÓÃĞÅÏ¢(´Óaddr¿ªÊ¼µÄsize×Ö½Ú¿Õ¼ä¿ÉÓÃ),free[i].addrÎª¿ÉÓÃ¿Õ¼ä¿ªÊ¼µÄµØÖ·,*/
+{
+    unsigned int addr, size;
+};
+
+struct MEMMAN /*ÄÚ´æ¹ÜÀíĞÅÏ¢*/
+{
+    int frees;    /*¿ÉÓÃĞÅÏ¢ÊıÄ¿(×Ü¹²)*/
+    int maxfrees; /*frees×î´óÖµ*/
+    int lostsize; /*ÊÍ·ÅÊ§°ÜµÄÄÚ´æµÄ´óĞ¡*/
+    int losts;    /*ÊÍ·ÅÊ§°Ü´ÎÊı*/
+    struct FREEINFO free[MEMMAN_FREES];
+};
+
+unsigned int memtest(unsigned int start, unsigned int end);                /*ÄÚ´æ¼ì²éÄÚº¬memtest_sub*/
+void memman_init(struct MEMMAN *man);                                      /*³õÊ¼»¯ÄÚ´æ¹ÜÀíĞÅÏ¢*/
+unsigned int memman_total(struct MEMMAN *man);                             /*ÄÚ´æ¿ÕÓà´óĞ¡*/
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);          /*ÄÚ´æ·ÖÅä*/
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size); /*ÄÚ´æÊÍ·Å(MEMMAN¸üĞÂ¿ÉÓÃĞÅÏ¢)*/
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);       /*4kÎªµ¥Î»½øĞĞÄÚ´æ·ÖÅä(È¡Éá´¦Àí)*/
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+
 /*sheet.c´°¿Úµş¼Ó*/
 #define MAX_SHEETS 256 /*ËùÄÜ¹ÜÀíµÄ×î´óÍ¼²ãÊı*/
 #define SHEET_USE 1
@@ -170,35 +199,6 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat); /*·ÖÎöÊó±ê´«ËÍÖÁ½á¹
 
 void wait_KBC_sendready(void); /*µÈ´ı¼üÅÌ¿ØÖÆµçÂ·×¼±¸Íê±Ï*/
 void init_keyboard(void);      /*³õÊ¼»¯¼üÅÌ¿ØÖÆµçÂ·*/
-
-/*memory.c*/
-//ÄÚ´æ¼ì²é,ÄÚ´æ·ÖÅä
-#define EFLAGS_AC_BIT 0x00040000
-#define CR0_CACHE_DISABLE 0x60000000 /*»º´æ½ûÓÃ*/
-#define MEMMAN_FREES 4090            /*32KB*/
-#define MEMMAN_ADDR 0x003c0000
-
-struct FREEINFO /*ÄÚ´æ¿ÉÓÃĞÅÏ¢(´Óaddr¿ªÊ¼µÄsize×Ö½Ú¿Õ¼ä¿ÉÓÃ),free[i].addrÎª¿ÉÓÃ¿Õ¼ä¿ªÊ¼µÄµØÖ·,*/
-{
-    unsigned int addr, size;
-};
-
-struct MEMMAN /*ÄÚ´æ¹ÜÀíĞÅÏ¢*/
-{
-    int frees;    /*¿ÉÓÃĞÅÏ¢ÊıÄ¿(×Ü¹²)*/
-    int maxfrees; /*frees×î´óÖµ*/
-    int lostsize; /*ÊÍ·ÅÊ§°ÜµÄÄÚ´æµÄ´óĞ¡*/
-    int losts;    /*ÊÍ·ÅÊ§°Ü´ÎÊı*/
-    struct FREEINFO free[MEMMAN_FREES];
-};
-
-unsigned int memtest(unsigned int start, unsigned int end);                /*ÄÚ´æ¼ì²éÄÚº¬memtest_sub*/
-void memman_init(struct MEMMAN *man);                                      /*³õÊ¼»¯ÄÚ´æ¹ÜÀíĞÅÏ¢*/
-unsigned int memman_total(struct MEMMAN *man);                             /*ÄÚ´æ¿ÕÓà´óĞ¡*/
-unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);          /*ÄÚ´æ·ÖÅä*/
-int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size); /*ÄÚ´æÊÍ·Å(MEMMAN¸üĞÂ¿ÉÓÃĞÅÏ¢)*/
-unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);       /*4kÎªµ¥Î»½øĞĞÄÚ´æ·ÖÅä(È¡Éá´¦Àí)*/
-int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 /*timer.c¼ä¸ôĞÍ¶¨Ê±Æ÷*/
 #define PIT_CTRL 0x0043
