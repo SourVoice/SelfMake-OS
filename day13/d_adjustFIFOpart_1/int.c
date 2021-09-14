@@ -1,8 +1,6 @@
 #include "bootpack.h"
 /*PIC(CPU外芯片,中断控制芯片)初始化,使用io_out8函数向PIC内部的寄存器写入内容*/
 
-struct FIFO8 mousefifo;
-
 void init_pic(void)
 {
 

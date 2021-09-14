@@ -187,7 +187,7 @@ struct MOUSE_DEC
 
 void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec); /*鼠标激活*/
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);               /*分析鼠标传送至结构中的数据*/
-void inthandler27(int *esp);                                               /*基于PS/2的鼠标中断/                                         /*来自PS/2鼠标的中断 */
+void inthandler27(int *esp);                                               /*基于PS/2的鼠标中断*/
 
 /*keyboard.c*/
 #define PORT_KEYSTA 0x0064
