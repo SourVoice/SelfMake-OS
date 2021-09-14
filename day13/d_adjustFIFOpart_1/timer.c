@@ -1,7 +1,6 @@
 #include "bootpack.h"
 
 struct TIMERCTL timerctl;
-struct FIFO8 timerfifo; /*时钟数据缓存区*/
 void init_pit(void)
 {
     int i;
@@ -34,7 +33,7 @@ void timer_free(struct TIMER *timer)
     timer->flags = 0;
     return;
 }
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data)
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data)
 {
     timer->fifo = fifo;
     timer->data = data;
@@ -74,7 +73,7 @@ void inthandler20(int *esp)
     {
         return;
     }
-    timerctl.next = 0xffffffff;
+    // timerctl.next = 0xffffffff;
     for (i = 0; i < timerctl.using; i++)
     {
         if (timerctl.timers[i]->timeout > timerctl.count) /*timeout作为给定时刻*/
@@ -82,7 +81,7 @@ void inthandler20(int *esp)
             break;
         }
         timerctl.timers[i]->flags = TIMER_FLAGS_ALLOC;
-        fifo8_put(timerctl.timers[i]->fifo, timerctl.timers[i]->data);
+        fifo32_put(timerctl.timers[i]->fifo, timerctl.timers[i]->data);
     }
     timerctl.using -= i;
     for (j = 0; j < timerctl.using; j++)

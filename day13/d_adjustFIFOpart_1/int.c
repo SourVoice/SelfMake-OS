@@ -1,7 +1,6 @@
 #include "bootpack.h"
 /*PIC(CPU外芯片,中断控制芯片)初始化,使用io_out8函数向PIC内部的寄存器写入内容*/
 
-struct FIFO8 keyfifo;
 struct FIFO8 mousefifo;
 
 void init_pic(void)
@@ -27,25 +26,6 @@ void init_pic(void)
     return;
 }
 
-void inthandler21(int *esp)
-{
-    unsigned char data;
-    io_out8(PIC0_OCW2, 0x61);   /*通知PIC的IRQ-01请求已经接受完毕,PIC监视IRQ1中断*/
-    data = io_in8(PORT_KEYDAT); /*从编号为0x0060的设备输入8位信息代表按键编码,编号0x0060设备为键盘*/
-
-    fifo8_put(&keyfifo, data);
-    return;
-}
-
-void inthandler2c(int *esp)
-{
-    unsigned char data;
-    io_out8(PIC1_OCW2, 0x64); /*通知PIC1 IRQ-12受理完成*/
-    io_out8(PIC0_OCW2, 0x62); /*通知PIC0 IRQ-02受理完成*/
-    data = io_in8(PORT_KEYDAT);
-    fifo8_put(&mousefifo, data);
-    return;
-}
 void inthandler27(int *esp)
 /* PIC0中断的不完整策略 */
 /* 这个中断在Athlon64X2上通过芯片组提供的便利，只需执行一次 */

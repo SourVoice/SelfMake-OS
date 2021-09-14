@@ -146,9 +146,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define COL8_848484 15
 
 /* int.c */
-void init_pic(void);         /*³õÊ¼»¯PIC*/
-void inthandler21(int *esp); /*À´×ÔPS/2¼üÅÌµÄÖĞ¶Ï */
-void inthandler27(int *esp); /*À´×ÔPS/2Êó±êµÄÖĞ¶Ï */
+void init_pic(void); /*³õÊ¼»¯PIC*/
 void inthandler2c(int *esp);
 
 #define PIC0_ICW1 0x0020 /*ICW(³õÊ¼»¯¿ØÖÆÊı¾İ),ÓĞ¹ØICWµÄ¼òÒªĞÅÏ¢¼ûÊéÉÏ*/
@@ -163,18 +161,17 @@ void inthandler2c(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
-struct FIFO8
+/*fifo.c*/
+#define FLAFS_OVERRUN 0x0001
+struct FIFO32
 {
-    unsigned char *buf;
+    int *buf;
     int p, q, size, free, flags; /*p for next_w,q for next_r*/
 };
-
-/*fifo8.c*/
-#define FLAFS_OVERRUN 0x0001
-void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf); /*»º³åÇø³õÊ¼»¯*/
-int fifo8_put(struct FIFO8 *fifo, unsigned char data);             /*ÏòFIFO´«ËÍÊı¾İ²¢±£´æ*/
-int fifo8_get(struct FIFO8 *fifo);                                 /*´ÓfifoÈ¡³öÊı¾İ*/
-int fifo8_status(struct FIFO8 *fifo);                              /*·µ»ØbufÖĞÓĞĞ§Êı¾İÊıÄ¿*/
+void fifo32_init(struct FIFO32 *fifo, int size, unsigned char *buf); /*»º³åÇø³õÊ¼»¯*/
+int fifo32_put(struct FIFO32 *fifo, unsigned char data);             /*ÏòFIFO´«ËÍÊı¾İ²¢±£´æ*/
+int fifo32_get(struct FIFO32 *fifo);                                 /*´ÓfifoÈ¡³öÊı¾İ*/
+int fifo32_status(struct FIFO32 *fifo);                              /*·µ»ØbufÖĞÓĞĞ§Êı¾İÊıÄ¿*/
 
 /*mouse.c*/
 #define PORT_KEYDAT 0x0060
@@ -188,8 +185,9 @@ struct MOUSE_DEC
     int x, y, btn; /*Êó±êÒÆ¶¯ĞÅÏ¢ºÍ°´¼ü×´Ì¬*/
 };                 /*Êó±ê×´Ì¬*/
 
-void enable_mouse(struct MOUSE_DEC *mdec);                   /*Êó±ê¼¤»î*/
-int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat); /*·ÖÎöÊó±ê´«ËÍÖÁ½á¹¹ÖĞµÄÊı¾İ*/
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec); /*Êó±ê¼¤»î*/
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);               /*·ÖÎöÊó±ê´«ËÍÖÁ½á¹¹ÖĞµÄÊı¾İ*/
+void inthandler27(int *esp);                                               /*»ùÓÚPS/2µÄÊó±êÖĞ¶Ï/                                         /*À´×ÔPS/2Êó±êµÄÖĞ¶Ï */
 
 /*keyboard.c*/
 #define PORT_KEYSTA 0x0064
@@ -197,8 +195,9 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat); /*·ÖÎöÊó±ê´«ËÍÖÁ½á¹
 #define KEYCMD_WRITE_MODE 0x60
 #define KBC_MODE 0x47
 
-void wait_KBC_sendready(void); /*µÈ´ı¼üÅÌ¿ØÖÆµçÂ·×¼±¸Íê±Ï*/
-void init_keyboard(void);      /*³õÊ¼»¯¼üÅÌ¿ØÖÆµçÂ·*/
+void wait_KBC_sendready(void);                      /*µÈ´ı¼üÅÌ¿ØÖÆµçÂ·×¼±¸Íê±Ï*/
+void init_keyboard(struct FIFO32 *fifo, int data0); /*³õÊ¼»¯¼üÅÌ¿ØÖÆµçÂ·*/
+void inthandler21(int *esp);                        /*À´×ÔPS/2¼üÅÌµÄÖĞ¶Ï */
 
 /*timer.c¼ä¸ôĞÍ¶¨Ê±Æ÷*/
 #define PIT_CTRL 0x0043
@@ -211,7 +210,7 @@ struct TIMER
 {
     unsigned int timeout; /*¼ÇÂ¼³¬Ê±Êı¾İ(±íÊ¾Ò»¸ö·¶Î§,timeoutµ½´ï0ºó,³ÌĞòÏò»º³åÇø·¢ËÍÊı¾İ)*/
     unsigned int flags;   /*ÓÃÓÚ¼ÇÂ¼¸÷¸ö¶¨Ê±Æ÷×´Ì¬*/
-    struct FIFO8 *fifo;
+    struct FIFO32 *fifo;
     unsigned char data;
 };
 struct TIMERCTL
@@ -220,9 +219,9 @@ struct TIMERCTL
     struct TIMER *timers[MAX_TIMER]; /*µØÖ·±í*/
     struct TIMER timers0[MAX_TIMER];
 };
-void init_pit(void);         /*³õÊ¼»¯PIT,¼´¼ä¸ô¶¨Ê±Æ÷*/
-void inthandler20(int *esp); /*ÆôÓÃÖĞ¶Ï(»ã±àÊµÏÖ)*/
+void init_pit(void); /*³õÊ¼»¯PIT,¼´¼ä¸ô¶¨Ê±Æ÷*/
 struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data);
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
+void inthandler20(int *esp); /*ÆôÓÃÖĞ¶Ï(»ã±àÊµÏÖ)*/
