@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include "bootpack.h"
 
-extern struct FIFO32 keyfifo; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
-extern struct FIFO32 mousefifo;
-extern struct TIMERCTL timerctl;
+extern struct TIMERCTL timerctl; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 struct FIFO32 fifo;
 void HariMain(void)
 {
@@ -11,12 +9,13 @@ void HariMain(void)
     struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     int xsize = binfo->scrnx, ysize = binfo->scrny;
     char *vram = binfo->vram;
-    char s[40], fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
+    char s[40];
+    int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
     struct TIMER *timer, *timer2, *timer3;
     int mouse_x = 0, mouse_y = 0, count = 0;
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
-    unsigned char data;
+    int data;
     unsigned int memtotal;
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR; /*memman需要32KB大小用于存储内存空间可用分配信息，我们使用从0x003c0000号地址以后*/
 
@@ -30,11 +29,12 @@ void HariMain(void)
 
     /*缓冲区初始化*/
     fifo32_init(&fifo, 128, fifobuf);
+
+    init_pit(); /*计时器间隔中断*/
     /*中断*/
     init_keyboard(&fifo, 256);       /*键盘接受至栈打开*/
     enable_mouse(&fifo, 512, &mdec); /*鼠标接受至栈打开*/
 
-    init_pit();              /*计时器间隔中断*/
     io_out8(PIC0_IMR, 0xf8); /*开放键盘中断(更改端口号使PIC1和PIT和键盘均为许可)*/
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
@@ -69,7 +69,6 @@ void HariMain(void)
     init_screen(buf_back, binfo->scrnx, binfo->scrny);
     init_mouse_cursor8(buf_mouse, 99); /* 背景色号99 */
     make_window(buf_win, 160, 68, "window");
-    putfonts8_asc(buf_win, 160, COL8_000000, 24, 28, "Welcome to");
     putfonts8_asc(buf_win, 160, COL8_000000, 24, 44, "This OS!");
     sheet_slide(sht_back, 0, 0);
     mouse_x = (binfo->scrnx - 16) / 2; /* 按显示在画面中央来计算坐标 */
@@ -104,7 +103,7 @@ void HariMain(void)
             }
             else if (512 <= data && data <= 767)
             {
-                if (mouse_decode(&mdec, data - 256) != 0)
+                if (mouse_decode(&mdec, data - 512) != 0)
                 {
                     sprintf(s, "[lcr %4d %4d]", mdec.x, mdec.y);
                     if ((mdec.btn & 0x01) != 0) /*最低位为1*/

@@ -15,11 +15,11 @@ void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec)
     mdec->phase = 0;                       /*0xfa送过来时舍去这阶段*/
     return;
 }
-int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
+int mouse_decode(struct MOUSE_DEC *mdec, int data)
 {
     if (mdec->phase == 0)
     {
-        if (dat == 0xfa)
+        if (data == 0xfa)
         {
             /*等待鼠标的0xfa阶段*/
             mdec->phase = 1;
@@ -28,23 +28,23 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
     }
     if (mdec->phase == 1)
     {
-        if ((dat & 0xc8) == 0x08)
+        if ((data & 0xc8) == 0x08)
         {
             /*检验第一个字节正确性*/
-            mdec->buf[0] = dat;
+            mdec->buf[0] = data;
             mdec->phase = 2;
         }
         return 0;
     }
     if (mdec->phase == 2)
     {
-        mdec->buf[1] = dat;
+        mdec->buf[1] = data;
         mdec->phase = 3;
         return 0;
     }
     if (mdec->phase == 3) /*仅第三阶段时将数据返回*/
     {
-        mdec->buf[2] = dat;
+        mdec->buf[2] = data;
         mdec->phase = 1;
         mdec->btn = mdec->buf[0] & 0x07;
         mdec->x = mdec->buf[1];

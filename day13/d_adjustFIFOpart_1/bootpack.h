@@ -146,9 +146,6 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define COL8_848484 15
 
 /* int.c */
-void init_pic(void); /*初始化PIC*/
-void inthandler2c(int *esp);
-
 #define PIC0_ICW1 0x0020 /*ICW(初始化控制数据),有关ICW的简要信息见书上*/
 #define PIC0_OCW2 0x0020 /*PIC内有许多寄存器,以端口号码进行区别*/
 #define PIC0_IMR 0x0021  /*IMR是PIC内中断屏蔽寄存器,8位对应8个IRQ信号*/
@@ -161,6 +158,10 @@ void inthandler2c(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+void init_pic(void); /*初始化PIC*/
+void inthandler2c(int *esp);
+
 /*fifo.c*/
 #define FLAFS_OVERRUN 0x0001
 struct FIFO32
@@ -168,10 +169,10 @@ struct FIFO32
     int *buf;
     int p, q, size, free, flags; /*p for next_w,q for next_r*/
 };
-void fifo32_init(struct FIFO32 *fifo, int size, unsigned char *buf); /*缓冲区初始化*/
-int fifo32_put(struct FIFO32 *fifo, unsigned char data);             /*向FIFO传送数据并保存*/
-int fifo32_get(struct FIFO32 *fifo);                                 /*从fifo取出数据*/
-int fifo32_status(struct FIFO32 *fifo);                              /*返回buf中有效数据数目*/
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf); /*缓冲区初始化*/
+int fifo32_put(struct FIFO32 *fifo, int data);             /*向FIFO传送数据并保存*/
+int fifo32_get(struct FIFO32 *fifo);                       /*从fifo取出数据*/
+int fifo32_status(struct FIFO32 *fifo);                    /*返回buf中有效数据数目*/
 
 /*mouse.c*/
 #define PORT_KEYDAT 0x0060
@@ -186,7 +187,7 @@ struct MOUSE_DEC
 };                 /*鼠标状态*/
 
 void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec); /*鼠标激活*/
-int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);               /*分析鼠标传送至结构中的数据*/
+int mouse_decode(struct MOUSE_DEC *mdec, int data);                        /*分析鼠标传送至结构中的数据*/
 void inthandler27(int *esp);                                               /*基于PS/2的鼠标中断*/
 
 /*keyboard.c*/
@@ -201,17 +202,17 @@ void inthandler21(int *esp);                        /*来自PS/2键盘的中断 */
 
 /*timer.c间隔型定时器*/
 #define PIT_CTRL 0x0043
-#define PIT_CNT0 0x0040 /*PIT和IRQ0相连*/
-#define MAX_TIMER 500   /*定时器最多设为500个*/
-
+#define PIT_CNT0 0x0040     /*PIT和IRQ0相连*/
+#define MAX_TIMER 500       /*定时器最多设为500个*/
 #define TIMER_FLAGS_ALLOC 1 /*已配置状态*/
 #define TIMER_FLAGS_USING 2 /*定时器运行中*/
+
 struct TIMER
 {
     unsigned int timeout; /*记录超时数据(表示一个范围,timeout到达0后,程序向缓冲区发送数据)*/
     unsigned int flags;   /*用于记录各个定时器状态*/
     struct FIFO32 *fifo;
-    unsigned char data;
+    int data;
 };
 struct TIMERCTL
 {

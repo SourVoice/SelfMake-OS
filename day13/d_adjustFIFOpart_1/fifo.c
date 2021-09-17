@@ -1,6 +1,6 @@
 #include "bootpack.h"
 
-void fifo32_init(struct FIFO32 *fifo, int size, unsigned char *buf)
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf)
 {
     fifo->size = size;
     fifo->buf = buf;
@@ -11,7 +11,7 @@ void fifo32_init(struct FIFO32 *fifo, int size, unsigned char *buf)
     return;
 }
 
-int fifo32_put(struct FIFO32 *fifo, unsigned char data)
+int fifo32_put(struct FIFO32 *fifo, int data)
 {
     if (fifo->free == 0)
     {
