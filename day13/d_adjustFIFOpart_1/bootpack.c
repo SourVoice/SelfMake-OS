@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "bootpack.h"
-
-extern struct TIMERCTL timerctl; /*表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
+/*extern+声明形式表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 struct FIFO32 fifo;
 void HariMain(void)
 {
@@ -25,7 +24,7 @@ void HariMain(void)
 
     init_gdtidt();
     init_pic();
-    io_sti(); /*中断IF设为1*/
+    io_sti(); /*中断IF设为1，即开放CPU中断*/
 
     /*缓冲区初始化*/
     fifo32_init(&fifo, 128, fifobuf);

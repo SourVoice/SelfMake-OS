@@ -1,4 +1,4 @@
-text size :   8168(0x01FE8)
+text size :   8176(0x01FF0)
 data size :  14828(0x039EC)
 bss  size :      0(0x00000)
 
@@ -78,19 +78,19 @@ bss  size :      0(0x00000)
 0x00001930 : _sheet_free
 0x00001953 : _init_pit
 0x00001953 : (.text)
-0x000019A4 : _timer_alloc
-0x000019CD : _timer_free
-0x000019DC : _timer_init
-0x000019F0 : _timer_settime
-0x00001A7B : _inthandler20
-0x00001B26 : (.text)
-0x00001B26 : _HariStartup
-0x00001B2F : _sprintf
-0x00001B2F : (.text)
-0x00001B43 : (.text)
-0x00001B7F : _strtoul0
-0x00001C52 : (.text)
-0x00001C7A : _vsprintf
+0x000019AE : _timer_alloc
+0x000019D7 : _timer_free
+0x000019E6 : _timer_init
+0x000019FA : _timer_settime
+0x00001A85 : _inthandler20
+0x00001B2E : (.text)
+0x00001B2E : _HariStartup
+0x00001B37 : _sprintf
+0x00001B37 : (.text)
+0x00001B4B : (.text)
+0x00001B87 : _strtoul0
+0x00001C5A : (.text)
+0x00001C82 : _vsprintf
 0x00000000 : (.data)
 0x00000000 : (.data)
 0x00000000 : (.data)

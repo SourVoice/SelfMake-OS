@@ -9,6 +9,7 @@ void init_pit(void)
     io_out8(PIT_CNT0, 0x2e); //上面两行写入0x2e9c,为中断频率
     timerctl.count = 0;
     timerctl.next = 0xffffffff;
+    timerctl.using = 0;
     for (i = 0; i < MAX_TIMER; i++)
     {
         timerctl.timers0[i].flags = 0; /*未使用*/
@@ -33,6 +34,7 @@ void timer_free(struct TIMER *timer)
     timer->flags = 0;
     return;
 }
+
 void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data)
 {
     timer->fifo = fifo;
