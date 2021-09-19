@@ -209,6 +209,7 @@ void inthandler21(int *esp);                        /*来自PS/2键盘的中断 */
 
 struct TIMER
 {
+    struct TIMER *next;   /*存放下一个即将超时的定时器地址*/
     unsigned int timeout; /*记录超时数据(表示一个范围,timeout到达0后,程序向缓冲区发送数据)*/
     unsigned int flags;   /*用于记录各个定时器状态*/
     struct FIFO32 *fifo;
@@ -216,8 +217,8 @@ struct TIMER
 };
 struct TIMERCTL
 {
-    unsigned int count, next, using; /*计数变量*/
-    struct TIMER *timers[MAX_TIMER]; /*地址表*/
+    unsigned int count, next_time, using; /*计数变量，next_time表示下一个超时的时刻*/
+    struct TIMER *t0;                     /*t0表示timers[]中的第一个，我们仅需要第一个*/
     struct TIMER timers0[MAX_TIMER];
 };
 void init_pit(void); /*初始化PIT,即间隔定时器*/
