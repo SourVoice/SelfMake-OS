@@ -217,8 +217,8 @@ struct TIMER
 };
 struct TIMERCTL
 {
-    unsigned int count, next_time, using; /*计数变量，next_time表示下一个超时的时刻*/
-    struct TIMER *t0;                     /*t0表示timers[]中的第一个，我们仅需要第一个*/
+    unsigned int count, next_time; /*计数变量，next_time表示下一个超时的时刻*/
+    struct TIMER *t0;              /*t0表示timers[]中的第一个，我们仅需要第一个*/
     struct TIMER timers0[MAX_TIMER];
 };
 void init_pit(void); /*初始化PIT,即间隔定时器*/

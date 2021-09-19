@@ -23,17 +23,21 @@ _init_pit:
 	PUSH	46
 	PUSH	64
 	CALL	_io_out8
-	MOV	EDX,_timerctl+10004
+	MOV	EDX,_timerctl+10000
 	MOV	DWORD [_timerctl],0
-	MOV	DWORD [_timerctl+4],-1
-	MOV	DWORD [_timerctl+8],0
 	ADD	ESP,24
-	MOV	EAX,_timerctl+24
+	MOV	EAX,_timerctl+20
 L6:
 	MOV	DWORD [EAX],0
 	ADD	EAX,20
 	CMP	EAX,EDX
 	JLE	L6
+	CALL	_timer_alloc
+	MOV	DWORD [4+EAX],-1
+	MOV	DWORD [8+EAX],2
+	MOV	DWORD [EAX],0
+	MOV	DWORD [_timerctl+8],EAX
+	MOV	DWORD [_timerctl+4],-1
 	LEAVE
 	RET
 	GLOBAL	_timer_alloc
@@ -41,7 +45,7 @@ _timer_alloc:
 	PUSH	EBP
 	XOR	EDX,EDX
 	MOV	EBP,ESP
-	MOV	EAX,_timerctl+16
+	MOV	EAX,_timerctl+12
 L15:
 	CMP	DWORD [8+EAX],0
 	JE	L18
@@ -82,54 +86,39 @@ _timer_settime:
 	MOV	EBP,ESP
 	PUSH	ESI
 	PUSH	EBX
-	ADD	EAX,DWORD [12+EBP]
 	MOV	EBX,DWORD [8+EBP]
-	MOV	DWORD [4+EBX],EAX
+	ADD	EAX,DWORD [12+EBP]
 	MOV	DWORD [8+EBX],2
+	MOV	DWORD [4+EBX],EAX
 	CALL	_io_load_eflags
 	MOV	ESI,EAX
 	CALL	_io_cli
-	CMP	DWORD [_timerctl+8],1
-	JE	L30
-	MOV	EAX,DWORD [_timerctl+12]
-	MOV	ECX,DWORD [4+EBX]
-	CMP	ECX,DWORD [4+EAX]
-	JBE	L31
-L24:
-	MOV	EDX,EAX
+	MOV	EAX,DWORD [_timerctl+8]
+	MOV	EDX,DWORD [4+EBX]
+	CMP	EDX,DWORD [4+EAX]
+	JBE	L28
+L23:
+	MOV	ECX,EAX
 	MOV	EAX,DWORD [EAX]
-	TEST	EAX,EAX
-	JE	L25
-	CMP	ECX,DWORD [4+EAX]
-	JA	L24
-	MOV	DWORD [EDX],EBX
+	CMP	EDX,DWORD [4+EAX]
+	JA	L23
+	MOV	DWORD [ECX],EBX
 	MOV	DWORD [EBX],EAX
-L29:
+L27:
 	MOV	DWORD [8+EBP],ESI
 	POP	EBX
 	POP	ESI
 	POP	EBP
 	JMP	_io_store_eflags
-L25:
-	MOV	DWORD [EDX],EBX
-	MOV	DWORD [EBX],0
-	JMP	L29
-L31:
-	MOV	DWORD [_timerctl+12],EBX
-	MOV	DWORD [_timerctl+4],ECX
+L28:
+	MOV	DWORD [_timerctl+8],EBX
+	MOV	DWORD [_timerctl+4],EDX
 	MOV	DWORD [EBX],EAX
-	JMP	L29
-L30:
-	MOV	EAX,DWORD [4+EBX]
-	MOV	DWORD [_timerctl+12],EBX
-	MOV	DWORD [_timerctl+4],EAX
-	MOV	DWORD [EBX],0
-	JMP	L29
+	JMP	L27
 	GLOBAL	_inthandler20
 _inthandler20:
 	PUSH	EBP
 	MOV	EBP,ESP
-	PUSH	ESI
 	PUSH	EBX
 	PUSH	96
 	PUSH	32
@@ -140,45 +129,29 @@ _inthandler20:
 	INC	EAX
 	MOV	DWORD [_timerctl],EAX
 	CMP	DWORD [_timerctl+4],EAX
+	JA	L29
+	MOV	EBX,DWORD [_timerctl+8]
+L31:
+	MOV	EAX,DWORD [4+EBX]
+	CMP	EAX,DWORD [_timerctl]
 	JA	L32
-	XOR	ESI,ESI
-	MOV	EBX,DWORD [_timerctl+12]
-	CMP	ESI,DWORD [_timerctl+8]
-	JAE	L35
-L39:
-	MOV	EAX,DWORD [_timerctl]
-	CMP	DWORD [4+EBX],EAX
-	JA	L35
 	MOV	DWORD [8+EBX],1
 	PUSH	DWORD [16+EBX]
 	PUSH	DWORD [12+EBX]
-	INC	ESI
 	CALL	_fifo32_put
 	POP	EAX
 	MOV	EBX,DWORD [EBX]
 	POP	EDX
-	CMP	ESI,DWORD [_timerctl+8]
-	JB	L39
-L35:
-	MOV	EAX,DWORD [_timerctl+8]
-	MOV	DWORD [_timerctl+12],EBX
-	SUB	EAX,ESI
-	MOV	DWORD [_timerctl+8],EAX
-	TEST	EAX,EAX
-	JE	L40
-	MOV	EAX,DWORD [4+EBX]
-	MOV	DWORD [_timerctl+4],EAX
+	JMP	L31
 L32:
-	LEA	ESP,DWORD [-8+EBP]
-	POP	EBX
-	POP	ESI
-	POP	EBP
+	MOV	DWORD [_timerctl+8],EBX
+	MOV	DWORD [_timerctl+4],EAX
+L29:
+	MOV	EBX,DWORD [-4+EBP]
+	LEAVE
 	RET
-L40:
-	MOV	DWORD [_timerctl+4],-1
-	JMP	L32
 	GLOBAL	_timerctl
 [SECTION .data]
 	ALIGNB	16
 _timerctl:
-	RESB	10016
+	RESB	10012
