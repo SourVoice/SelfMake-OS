@@ -8,7 +8,7 @@ void init_pit(void)
     io_out8(PIT_CNT0, 0x9c);
     io_out8(PIT_CNT0, 0x2e); //上面两行写入0x2e9c,为中断频率
     timerctl.count = 0;
-    timerctl.next = 0xffffffff;
+    timerctl.next_time = 0xffffffff;
     timerctl.using = 0;
     for (i = 0; i < MAX_TIMER; i++)
     {
@@ -62,16 +62,16 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
     }
     timerctl.using ++;
     timerctl.timers[i] = timer;
-    timerctl.next = timerctl.timers[0]->timeout;
+    timerctl.next_time = timerctl.timers[0]->timeout;
     io_store_eflags(eflags);
     return;
 }
 void inthandler20(int *esp)
 {
     int i, j;
-    io_out8(PIC0_OCW2, 0x60);           /*IRQ-00信号接受结束通知至PIC*/
-    timerctl.count++;                   /*定时器中断时,计数变量+1*/
-    if (timerctl.next > timerctl.count) /*仅判断当前中断和下一个中断*/
+    io_out8(PIC0_OCW2, 0x60);                /*IRQ-00信号接受结束通知至PIC*/
+    timerctl.count++;                        /*定时器中断时,计数变量+1*/
+    if (timerctl.next_time > timerctl.count) /*仅判断当前中断和下一个中断*/
     {
         return;
     }
@@ -93,11 +93,11 @@ void inthandler20(int *esp)
     }
     if (timerctl.using > 0)
     {
-        timerctl.next = timerctl.timers[0]->timeout;
+        timerctl.next_time = timerctl.timers[0]->timeout;
     }
     else
     {
-        timerctl.next = 0xffffffff;
+        timerctl.next_time = 0xffffffff;
     }
     return;
 }

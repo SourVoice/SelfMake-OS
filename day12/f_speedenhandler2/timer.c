@@ -9,7 +9,7 @@ void init_pit(void)
     io_out8(PIT_CNT0, 0x9c);
     io_out8(PIT_CNT0, 0x2e); //上面两行写入0x2e9c,为中断频率
     timerctl.count = 0;
-    timerctl.next = 0xffffffff;
+    timerctl.next_time = 0xffffffff;
     for (i = 0; i < MAX_TIMER; i++)
     {
         timerctl.timer[i].flags = 0; /*未使用*/
@@ -44,23 +44,23 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 {
     timer->timeout = timeout + timerctl.count;
     timer->flags = TIMER_FLAGS_USING;
-    if (timerctl.next > timer->timeout)
+    if (timerctl.next_time > timer->timeout)
     {
         /*设置成最小的*/
-        timerctl.next = timer->timeout;
+        timerctl.next_time = timer->timeout;
     }
     return;
 }
 void inthandler20(int *esp)
 {
     int i;
-    io_out8(PIC0_OCW2, 0x60);           /*IRQ-00信号接受结束通知至PIC*/
-    timerctl.count++;                   /*定时器中断时,计数变量+1*/
-    if (timerctl.next > timerctl.count) /*仅判断当前中断和下一个中断*/
+    io_out8(PIC0_OCW2, 0x60);                /*IRQ-00信号接受结束通知至PIC*/
+    timerctl.count++;                        /*定时器中断时,计数变量+1*/
+    if (timerctl.next_time > timerctl.count) /*仅判断当前中断和下一个中断*/
     {
         return;
     }
-    timerctl.next = 0xffffffff;
+    timerctl.next_time = 0xffffffff;
     for (i = 0; i < MAX_TIMER; i++)
     {
         if (timerctl.timer[i].flags == TIMER_FLAGS_USING)
@@ -73,9 +73,9 @@ void inthandler20(int *esp)
             else
             {
                 /*进入下一个定时器但并未超时,则将定时器timeout赋值给下一个*/
-                if (timerctl.next > timerctl.timer[i].timeout)
+                if (timerctl.next_time > timerctl.timer[i].timeout)
                 {
-                    timerctl.next = timerctl.timer[i].timeout;
+                    timerctl.next_time = timerctl.timer[i].timeout;
                 }
             }
         }

@@ -216,13 +216,14 @@ struct TIMER
 };
 struct TIMERCTL
 {
-    unsigned int count, next, using; /*计数变量*/
-    struct TIMER *timers[MAX_TIMER]; /*地址表*/
+    unsigned int count, next_time, using; /*计数变量*/
+    struct TIMER *timers[MAX_TIMER];      /*地址表*/
     struct TIMER timers0[MAX_TIMER];
 };
 void init_pit(void); /*初始化PIT,即间隔定时器*/
 struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
+
 void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
 void inthandler20(int *esp); /*启用中断(汇编实现)*/
