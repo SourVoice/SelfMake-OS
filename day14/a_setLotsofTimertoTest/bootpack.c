@@ -2,6 +2,10 @@
 #include "bootpack.h"
 /*extern+声明形式表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 struct FIFO32 fifo;
+
+/*bootpack.c*/
+void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*暂时绘制窗口*/
+void set490(struct FIFO32 *fifo, int mode);                              /*追加490个定时器*/
 void HariMain(void)
 {
 
@@ -38,6 +42,8 @@ void HariMain(void)
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
     /*时钟中断设置*/
+    set490(&fifo, 1);
+
     timer = timer_alloc();
     timer_init(timer, &fifo, 10);
     timer_settime(timer, 1000);
@@ -222,6 +228,23 @@ void make_window(unsigned char *buf, int xsize, int ysize, char *title)
                 c = COL8_ffffff;
             }
             buf[(5 + y) * xsize + (xsize - 21 + x)] = c;
+        }
+    }
+    return;
+}
+void set490(struct FIFO32 *fifo, int mode)
+{
+    int i;
+    struct TIMER *timer;
+    if (mode != 0)
+    {
+
+        for (i = 0; i < 490; i++)
+        {
+
+            timer = timer_alloc();
+            timer_init(timer, fifo, 1024 + i);
+            timer_settime(timer, 100 * 60 * 60 * 24 * 50 + i * 100);
         }
     }
     return;

@@ -24,9 +24,6 @@ void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
 void asm_inthandler20(void);
-/*bootpack.c*/
-//中断
-void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*暂时绘制窗口*/
 
 /*memory.c*/
 //内存检查,内存分配
