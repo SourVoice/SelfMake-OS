@@ -8,6 +8,12 @@ void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*ÔÝÊ±»
 void set490(struct FIFO32 *fifo, int mode);                              /*×·¼Ó490¸ö¶¨Ê±Æ÷*/
 void HariMain(void)
 {
+    static char keytable[0x54] = {0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
+                                  'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0, 0, 'A', 'S',
+                                  'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0, 0, ']', 'Z', 'X', 'C',
+                                  'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', 0, ' ', 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, '7', '8', '9', '-', '4', '5', '6', '+', '1',
+                                  '2', '3', '0', '.'};
 
     struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
     int xsize = binfo->scrnx, ysize = binfo->scrny;
@@ -91,11 +97,10 @@ void HariMain(void)
 
     for (;;)
     {
-        count++;
         io_cli();                      /*ÆÁ±ÎÖÐ¶Ï(Ò»´ÎÖ»Ö´ÐÐÒ»´ÎÖÐ¶Ï´¦Àí)*/
         if (fifo32_status(&fifo) == 0) /*¼ì²é»º³åÇø,Îª¿ÕÖ±½Ó½øÈëÍ£»ú*/
         {
-            io_sti(); /*shihlt¸ÄÎªÁËsti*/
+            io_stihlt();
         }
         else
         {
@@ -105,6 +110,15 @@ void HariMain(void)
             {
                 sprintf(s, "%02x", data - 256);
                 putfonts_asc_sht(sht_back, 0, 16, COL8_ffffff, COL8_008484, s, 2);
+                if (data < 256 + 0x54)
+                {
+                    if (keytable[data - 256] != 0)
+                    {
+                        s[0] = keytable[data - 256];
+                        s[1] = 0;
+                        putfonts_asc_sht(sht_win, 40, 28, COL8_c6c6c6, COL8_000000, s, 1);
+                    }
+                }
             }
             else if (512 <= data && data <= 767)
             {
@@ -151,13 +165,10 @@ void HariMain(void)
             else if (data == 10)
             {
                 putfonts_asc_sht(sht_back, 0, 64, COL8_ffffff, COL8_008484, "10[sec]", 7);
-                sprintf(s, "%010d", count);
-                putfonts_asc_sht(sht_win, 40, 28, COL8_000000, COL8_c6c6c6, s, 10);
             }
             else if (data == 3)
             {
                 putfonts_asc_sht(sht_back, 0, 80, COL8_ffffff, COL8_008484, "3[sec]", 6);
-                count = 0;
             }
             else if (data == 1) /*¹â±êÓÃ¶¨Ê±Æ÷*/
             {
