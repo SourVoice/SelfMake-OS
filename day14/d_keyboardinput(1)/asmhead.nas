@@ -2,6 +2,17 @@
 
 ;os
 ;TAB=4
+[INSTRSET "i486p"]
+
+VBEMODE	EQU		0x105			; 1024 x  768 x 8bit 彩色
+; 显示模式
+;	0x100 :  640 x  400 x 8bit 彩色
+;	0x101 :  640 x  480 x 8bit 彩色
+;	0x103 :  800 x  600 x 8bit 彩色
+;	0x105 : 1024 x  768 x 8bit 彩色
+;	0x107 : 1280 x 1024 x 8bit 彩色
+
+
 ;BIOS-INFO,这部分内容放到内存0x0ff0处,作为操作系统的设置
 
 ;根据函数入口地址调节32位模式,这TM都没讲保护模式的进入，我都没法用gcc连接目标文件
@@ -71,7 +82,7 @@ scrn320:										;显卡不支持VBE,改为使用320*320模式
 		MOV		DWORD [VRAM],0x000a0000
 
 ;通过BIOS获取指示灯状态
-
+keystatus:
 		MOV		AH,0x02
 		INT		0x16 			;keyboard BIOS
 		MOV		[LEDS],AL
