@@ -125,22 +125,22 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define AR_INTGATE32 0x008e
 
 /*颜色定义*/
-#define COL8_000000 0
-#define COL8_ff0000 1
-#define COL8_00ff00 2
-#define COL8_ffff00 3
-#define COL8_0000ff 4
-#define COL8_ff00ff 5
-#define COL8_00ffff 6
-#define COL8_ffffff 7
-#define COL8_c6c6c6 8
-#define COL8_840000 9
-#define COL8_008400 10
-#define COL8_848400 11
-#define COL8_000084 12
-#define COL8_840084 13
-#define COL8_008484 14
-#define COL8_848484 15
+#define COL8_000000 0  /*黑*/
+#define COL8_ff0000 1  /*亮红*/
+#define COL8_00ff00 2  /*亮绿*/
+#define COL8_ffff00 3  /*亮黄*/
+#define COL8_0000ff 4  /*亮蓝*/
+#define COL8_ff00ff 5  /*亮紫*/
+#define COL8_00ffff 6  /*浅亮蓝*/
+#define COL8_ffffff 7  /*白*/
+#define COL8_c6c6c6 8  /*亮灰*/
+#define COL8_840000 9  /*暗红*/
+#define COL8_008400 10 /*暗绿*/
+#define COL8_848400 11 /*暗黄*/
+#define COL8_000084 12 /*暗蓝*/
+#define COL8_840084 13 /*暗紫*/
+#define COL8_008484 14 /*浅暗蓝*/
+#define COL8_848484 15 /*暗灰*/
 
 /* int.c */
 #define PIC0_ICW1 0x0020 /*ICW(初始化控制数据),有关ICW的简要信息见书上*/

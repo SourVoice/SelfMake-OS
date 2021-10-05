@@ -114,21 +114,21 @@ void HariMain(void)
                 putfonts_asc_sht(sht_back, 0, 16, COL8_ffffff, COL8_008484, s, 2);
                 if (data < 256 + 0x54)
                 {
-                    if (keytable[data - 256] != 0)
+                    if (keytable[data - 256] != 0 && cursor_x < 144)
                     {
                         s[0] = keytable[data - 256];
                         s[1] = 0;
-                        putfonts_asc_sht(sht_win, 40, 28, COL8_c6c6c6, COL8_ff0000, s, 1);
+                        putfonts_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_ffffff, s, 1);
                         cursor_x += 8;
                     }
                     if (data == 256 + 0x0e && cursor_x > 8) /*backspace键,*/
                     {
                         /*用空格键把光标消去后,后移依次光标*/
                         putfonts_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_ffffff, " ", 1);
-                        cursor_x -= 8;
+                        cursor_x += 8;
                     }
                     /*光标*/
-                    boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, 28, cursor_x + 7, 7, 43);
+                    boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
                     sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
                 }
             }
@@ -172,6 +172,10 @@ void HariMain(void)
                     sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
                     putfonts_asc_sht(sht_back, 0, 0, COL8_ffffff, COL8_008484, s, 10);
                     sheet_slide(sht_mouse, mouse_x, mouse_y); /*含refresh*/
+                    if ((mdec.btn & 0x01) != 0)               /*按下左键,移动sht_win*/
+                    {
+                        sheet_slide(sht_win, mouse_x - 80, mouse_y - 8);
+                    }
                 }
             }
             else if (data == 10)
