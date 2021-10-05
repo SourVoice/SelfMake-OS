@@ -80,8 +80,7 @@ void HariMain(void)
     sprintf(s, "(%3d, %3d)", mouse_x, mouse_y);
     putfonts8_asc(buf_back, binfo->scrnx, 0, 0, 0, s);
     sprintf(s, "memory %dMB free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
-    putfonts8_asc(buf_back, binfo->scrnx, COL8_ffffff, 0, 32, s);
-    sheet_refresh(sht_back, 0, 0, xsize, 48); /* 刷新文字 */
+    putfonts_asc_sht(sht_back, 0, 32, COL8_ffffff, COL8_008484, s, 40); /* 刷新文字 */
 
     for (;;)
     {
