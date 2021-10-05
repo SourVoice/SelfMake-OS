@@ -79,13 +79,13 @@ install :
 	$(IMGTOL) w a: haribote.img
 
 clean :
-	-$(DEL) *.bin
-	-$(DEL) *.lst
-	-$(DEL) *.obj
-	-$(DEL) bootpack.map
-	-$(DEL) bootpack.bim
-	-$(DEL) bootpack.hrb
-	-$(DEL) haribote.sys
+	$(DEL) *.bin
+	$(DEL) *.lst
+	$(DEL) *.obj
+	$(DEL) bootpack.map
+	$(DEL) bootpack.bim
+	$(DEL) bootpack.hrb
+	$(DEL) haribote.sys
 
 src_only :
 	$(MAKE) clean

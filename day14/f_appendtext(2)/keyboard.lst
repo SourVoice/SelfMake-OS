@@ -49,8 +49,8 @@
     49 00000057 E8 [00000000]                   	CALL	_io_out8
     50 0000005C 6A 60                           	PUSH	96
     51 0000005E E8 [00000000]                   	CALL	_io_in8
-    52 00000063 02 05 [00000004]                	ADD	AL,BYTE [_keydata0]
-    53 00000069 0F B6 C0                        	MOVZX	EAX,AL
+    52 00000063 0F B6 C0                        	MOVZX	EAX,AL
+    53 00000066 03 05 [00000004]                	ADD	EAX,DWORD [_keydata0]
     54 0000006C 50                              	PUSH	EAX
     55 0000006D FF 35 [00000000]                	PUSH	DWORD [_keyfifo]
     56 00000073 E8 [00000000]                   	CALL	_fifo32_put
