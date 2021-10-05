@@ -4,7 +4,8 @@
 struct FIFO32 fifo;
 
 /*bootpack.c*/
-void make_window(unsigned char *buf, int xsize, int ysize, char *title); /*暂时绘制窗口*/
+void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
 void HariMain(void)
 {
     static char keytable[0x54] = {0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
@@ -21,9 +22,10 @@ void HariMain(void)
     int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
     struct TIMER *timer, *timer2, *timer3;
     int mouse_x = 0, mouse_y = 0;
+    int cursor_x, cursor_c; /*cursor_x光标显示位置变量,没输入一个字符该变量递增8,cursor_c表示光标颜色,每0.5s变化一次*/
+    int data;
 
     struct MOUSE_DEC mdec; /*d代表decode,phase阶段,记录数据接受的阶段*/
-    int data;
     unsigned int memtotal;
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR; /*memman需要32KB大小用于存储内存空间可用分配信息，我们使用从0x003c0000号地址以后*/
 
@@ -92,6 +94,9 @@ void HariMain(void)
     sprintf(s, "memory %dMB free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts_asc_sht(sht_back, 0, 32, COL8_ffffff, COL8_008484, s, 40); /* 刷新文字 */
 
+    cursor_x = 8;
+    cursor_c = COL8_ffffff;
+    make_textbox8(sht_win, 8, 28, 144, 16, COL8_ffffff);
     for (;;)
     {
         io_cli();                      /*屏蔽中断(一次只执行一次中断处理)*/
@@ -114,7 +119,17 @@ void HariMain(void)
                         s[0] = keytable[data - 256];
                         s[1] = 0;
                         putfonts_asc_sht(sht_win, 40, 28, COL8_c6c6c6, COL8_ff0000, s, 1);
+                        cursor_x += 8;
                     }
+                    if (data == 256 + 0x0e && cursor_x > 8) /*backspace键,*/
+                    {
+                        /*用空格键把光标消去后,后移依次光标*/
+                        putfonts_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_ffffff, " ", 1);
+                        cursor_x -= 8;
+                    }
+                    /*光标*/
+                    boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, 28, cursor_x + 7, 7, 43);
+                    sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
                 }
             }
             else if (512 <= data && data <= 767)
@@ -157,6 +172,10 @@ void HariMain(void)
                     sprintf(s, "(%3d,%3d)", mouse_x, mouse_y);
                     putfonts_asc_sht(sht_back, 0, 0, COL8_ffffff, COL8_008484, s, 10);
                     sheet_slide(sht_mouse, mouse_x, mouse_y); /*含refresh*/
+                    if ((mdec.btn & 0x01) != 0)               /*按下左键,移动sht_win*/
+                    {
+                        sheet_slide(sht_win, mouse_x - 80, mouse_y - 8); /*移动图层*/
+                    }
                 }
             }
             else if (data == 10)
@@ -167,19 +186,20 @@ void HariMain(void)
             {
                 putfonts_asc_sht(sht_back, 0, 80, COL8_ffffff, COL8_008484, "3[sec]", 6);
             }
-            else if (data == 1) /*光标用定时器*/
+            else if (data <= 1)
             {
-                timer_init(timer3, &fifo, 0);
-                boxfill8(buf_back, xsize, COL8_ffffff, 8, 96, 15, 111);
-                timer_settime(timer3, 50);
-                sheet_refresh(sht_back, 8, 96, 16, 112);
-            }
-            else if (data == 0) /*光标用定时器*/
-            {
-                timer_init(timer3, &fifo, 1);
-                boxfill8(buf_back, xsize, COL8_008484, 8, 96, 15, 111);
-                timer_settime(timer3, 50);
-                sheet_refresh(sht_back, 8, 96, 16, 112);
+                if (data != 0)
+                {
+                    timer_init(timer3, &fifo, 0);
+                    cursor_c = COL8_000000;
+                }
+                else
+                {
+                    timer_init(timer, &fifo, 1);
+                    cursor_c = COL8_ffffff;
+                }
+                boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+                sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
             }
         }
     }
@@ -238,5 +258,20 @@ void make_window(unsigned char *buf, int xsize, int ysize, char *title)
             buf[(5 + y) * xsize + (xsize - 21 + x)] = c;
         }
     }
+    return;
+}
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
+{
+    int x1 = x0 + sx, y1 = y0 + sy;
+    boxfill8(sht->buf, sht->bxsize, COL8_848484, x0 - 2, y0 - 3, x1 + 1, y0 - 3);
+    boxfill8(sht->buf, sht->bxsize, COL8_848484, x0 - 3, y0 - 3, x0 - 3, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, COL8_ffffff, x0 - 3, y1 + 2, x1 + 1, y1 + 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_ffffff, x1 + 2, y0 - 3, x1 + 2, y1 + 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_000000, x0 - 1, y0 - 2, x1 + 0, y0 - 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_000000, x0 - 2, y0 - 2, x0 - 2, y1 + 0);
+    boxfill8(sht->buf, sht->bxsize, COL8_c6c6c6, x0 - 2, y1 + 1, x1 + 0, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, COL8_c6c6c6, x1 + 1, y0 - 2, x1 + 1, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, color,
+             x0 - 1, y0 - 1, x1 + 0, y1 + 0);
     return;
 }
