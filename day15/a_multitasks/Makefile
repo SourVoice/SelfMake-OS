@@ -66,6 +66,7 @@ haribote.img : ipl10.bin haribote.sys Makefile
 
 # 运行程序
 
+
 img :
 	$(MAKE) haribote.img
 
@@ -74,11 +75,6 @@ run :
 	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
 	$(MAKE) -C ../z_tools/qemu
 
-install :
-	$(MAKE) img
-	$(IMGTOL) w a: haribote.img
-
-clean :
 	$(DEL) *.bin
 	$(DEL) *.lst
 	$(DEL) *.obj
@@ -86,7 +82,12 @@ clean :
 	$(DEL) bootpack.bim
 	$(DEL) bootpack.hrb
 	$(DEL) haribote.sys
+	$(DEL) haribote.img
+
+
+install :
+	$(MAKE) img
+	$(IMGTOL) w a: haribote.img
+
 
 src_only :
-	$(MAKE) clean
-	-$(DEL) haribote.img
