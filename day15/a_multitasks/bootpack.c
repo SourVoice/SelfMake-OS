@@ -2,10 +2,11 @@
 #include "bootpack.h"
 /*extern+声明形式表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 struct FIFO32 fifo;
-
+extern struct TSS32 tss_a, tss_b;
 /*bootpack.c*/
 void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
+void task_b_main(void);
 void HariMain(void)
 {
     static char keytable[0x54] = {0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
@@ -20,6 +21,7 @@ void HariMain(void)
     char *vram = binfo->vram;
     char s[40];
     int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
+    int task_b_esp;
     struct TIMER *timer, *timer2, *timer3;
     int mouse_x = 0, mouse_y = 0;
     int cursor_x, cursor_c; /*cursor_x光标显示位置变量,没输入一个字符该变量递增8,cursor_c表示光标颜色,每0.5s变化一次*/
@@ -34,6 +36,11 @@ void HariMain(void)
     unsigned char *buf_back, buf_mouse[256], *buf_win; /*buf_mouse 图像内容*/
 
     init_gdtidt();
+    tss_a.ldtr = 0;
+    tss_a.iomap = 0x40000000;
+    tss_b.ldtr = 0;
+    tss_b.iomap = 0x40000000;
+
     init_pic();
     io_sti(); /*中断IF设为1，即开放CPU中断*/
 
@@ -73,7 +80,8 @@ void HariMain(void)
     sht_mouse = sheet_alloc(shtctl);
     sht_win = sheet_alloc(shtctl);
     buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
-    buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68);
+    buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68); /*为任务b分配64KB*/
+    task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024;
     sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 没有透明色 */
     sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);                   /* 透明色号99 */
     sheet_setbuf(sht_win, buf_win, 160, 68, -1);
@@ -97,6 +105,25 @@ void HariMain(void)
     cursor_x = 8;
     cursor_c = COL8_ffffff;
     make_textbox8(sht_win, 8, 28, 144, 16, COL8_ffffff);
+
+    load_tr(3 * 8);
+    tss_b.eip = (int)&task_b_main;
+    tss_b.eflags = 0x00000202; /* IF = 1; */
+    tss_b.eax = 0;
+    tss_b.ecx = 0;
+    tss_b.edx = 0;
+    tss_b.ebx = 0;
+    tss_b.esp = task_b_esp;
+    tss_b.ebp = 0;
+    tss_b.esi = 0;
+    tss_b.edi = 0;
+    tss_b.es = 1 * 8;
+    tss_b.cs = 2 * 8;
+    tss_b.ss = 1 * 8;
+    tss_b.ds = 1 * 8;
+    tss_b.fs = 1 * 8;
+    tss_b.gs = 1 * 8;
+
     for (;;)
     {
         io_cli();                      /*屏蔽中断(一次只执行一次中断处理)*/
@@ -181,6 +208,7 @@ void HariMain(void)
             else if (data == 10)
             {
                 putfonts_asc_sht(sht_back, 0, 64, COL8_ffffff, COL8_008484, "10[sec]", 7);
+                taskswitch4(); /*运行10s后切换任务*/
             }
             else if (data == 3)
             {
@@ -274,4 +302,11 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
     boxfill8(sht->buf, sht->bxsize, color,
              x0 - 1, y0 - 1, x1 + 0, y1 + 0);
     return;
+}
+void task_b_main(void)
+{
+    for (;;)
+    {
+        io_hlt();
+    }
 }

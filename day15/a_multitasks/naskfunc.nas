@@ -15,9 +15,11 @@ GLOBAL          _io_out8,_io_out16,_io_out32
 GLOBAL          _io_load_eflags,_io_store_eflags         
 GLOBAL          _load_gdtr,_load_idtr
 GLOBAL          _load_cr0,_store_cr0
+GLOBAL          _load_tr
 GLOBAL          _memtest_sub
 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
 EXTERN          _inthandler20,_inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
+GLOBAL          _taskswitch4
 [SECTION .text]
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
@@ -61,6 +63,7 @@ _io_out32:
         mov     eax,[esp+8]
         out     dx,EAX
         RET
+
 _io_load_eflags:                
         pushfd                  
         pop     eax             
@@ -83,10 +86,14 @@ _load_idtr:
 _load_cr0:      ;int store_cr0(void)
         mov     eax,CR0
         ret
+_load_tr:       ;void load_tr(int tr) 写入tr寄存器
+        ltr     [ESP+4]
+        RET
 _store_cr0:     ;void store_cr0(int cr0)
         mov     eax,[esp+4]
         mov     CR0,EAX
         ret
+
 _memtest_sub:   ;unsigned int memtest_sub(unsigned int start,unsigned int end);(内存检查函数)
         push    edi             
         push    esi
@@ -182,3 +189,8 @@ _asm_inthandler27:
         pop     ds
         pop     es
         IRETD                           
+
+_taskswitch4:   ;void taskswitch4(void)执行far模式跳转指令
+        jmp     4*8:0
+        RET
+        

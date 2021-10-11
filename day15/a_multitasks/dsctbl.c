@@ -1,9 +1,11 @@
 #include "bootpack.h"
 /*初始化gdt,idt*/
+struct TSS32 tss_a, tss_b;
 void init_gdtidt(void)
 {
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT; /*GDT在内存上的位置*/
     struct GATE_DESCRIPTOR *idt = (struct GATE_DESCRIPTOR *)ADR_IDT;
+
     int i;
     /*GDT初始化*/
     for (i = 0; i <= LIMIT_GDT / 8; i++) /*8192个段*/
@@ -12,7 +14,9 @@ void init_gdtidt(void)
     }
     set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);   /*第一段从基址为0, 上限为0xffffffff代表CPU所能管理的全部内存*/
     set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER); /*第二段512kb,地址0x280000,供bootpack.hrb使用*/
-    load_gdtr(LIMIT_GDT, ADR_GDT);                                 /**/
+    set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32);             /*tss+a定义在gdt三号,段长103字节*/
+    set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
+    load_gdtr(LIMIT_GDT, ADR_GDT); /**/
     /*IDT初始化*/
     for (i = 0; i <= LIMIT_IDT / 8; i++)
     {

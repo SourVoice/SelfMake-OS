@@ -13,17 +13,19 @@ void io_sti(void);
 void io_stihlt(void);
 void io_out8(int port, int data);
 unsigned char io_in8(int port);
-int io_load_eflags(void);                                       /*取出eflag寄存器的值*/
-void io_store_eflags(int eflags);                               /*向eflags寄存器写入内容*/
-void load_gdtr(int limit, int addr);                            /*将GDT加载到内存指定位置*/
-void load_idtr(int limit, int addr);                            /*将IDT加载到内存指定位置*/
-int load_cr0(void);                                             /*取出CR0寄存器值*/
-void store_cr0(int cr0);                                        /*向CR0寄存器写入值*/
+int io_load_eflags(void);            /*取出eflag寄存器的值*/
+void io_store_eflags(int eflags);    /*向eflags寄存器写入内容*/
+void load_gdtr(int limit, int addr); /*将GDT加载到内存指定位置*/
+void load_idtr(int limit, int addr); /*将IDT加载到内存指定位置*/
+int load_cr0(void);                  /*取出CR0寄存器值*/
+void store_cr0(int cr0);
+void load_tr(int tr); /*写入tr寄存器*/                          /*向CR0寄存器写入值*/
 unsigned int memtest_sub(unsigned int start, unsigned int end); /*内存检查*/
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
 void asm_inthandler20(void);
+void taskswitch4(void);
 
 /*memory.c*/
 //内存检查,内存分配
@@ -111,8 +113,8 @@ struct GATE_DESCRIPTOR
 };
 struct TSS32 /*task status segment(TSS)任务状态段,同属内存段一种*/
 {
-    int backlink, esp0, ss0, ss1, esp2, ss2, cr3; /*保存和任务设置相关信息*/
-    int eip, eax, ecx, edx, ebx, ebp, esi, edi;   /*32位寄存器,包括eflags*/
+    int backlink, esp0, ss0, ss1, esp2, ss2, cr3;    /*保存和任务设置相关信息*/
+    int eip, eax, ecx, edx, ebx, esp, ebp, esi, edi; /*32位寄存器,包括eflags*/
     int eflags;
     int es, cs, ss, ds, fs, gs; /*16位寄存器*/
     int ldtr, iomap;
@@ -129,6 +131,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define LIMIT_BOTPAK 0x0007ffff
 #define AR_DATA32_RW 0x4092
 #define AR_CODE32_ER 0x409a
+#define AR_TSS32 0x0089
 #define AR_INTGATE32 0x008e
 
 /*颜色定义*/
