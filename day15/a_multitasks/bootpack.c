@@ -6,7 +6,7 @@ extern struct TSS32 tss_a, tss_b;
 /*bootpack.c*/
 void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
-void task_b_main(void);
+void task_b_main(void);                                                           /*b任务执行内容*/
 void HariMain(void)
 {
     static char keytable[0x54] = {0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
@@ -107,8 +107,8 @@ void HariMain(void)
     make_textbox8(sht_win, 8, 28, 144, 16, COL8_ffffff);
 
     load_tr(3 * 8);
-    tss_b.eip = (int)&task_b_main;
-    tss_b.eflags = 0x00000202; /* IF = 1; */
+    tss_b.eip = (int)&task_b_main; /*eip寄存器中记录了要跳转任务的开始位置,这里直接给到task_b_main的地址*/
+    tss_b.eflags = 0x00000202;     /* IF = 1; */
     tss_b.eax = 0;
     tss_b.ecx = 0;
     tss_b.edx = 0;
@@ -152,7 +152,7 @@ void HariMain(void)
                     {
                         /*用空格键把光标消去后,后移依次光标*/
                         putfonts_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_ffffff, " ", 1);
-                        cursor_x += 8;
+                        cursor_x -= 8;
                     }
                     /*光标*/
                     boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);

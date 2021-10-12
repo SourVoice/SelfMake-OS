@@ -657,7 +657,7 @@
    653 000007A8 6A 00                           	PUSH	0
    654 000007AA 6A 1C                           	PUSH	28
    655 000007AC 57                              	PUSH	EDI
-   656 000007AD 83 C7 08                        	ADD	EDI,8
+   656 000007AD 83 EF 08                        	SUB	EDI,8
    657 000007B0 FF B5 FFFFFC84                  	PUSH	DWORD [-892+EBP]
    658 000007B6 E8 [00000000]                   	CALL	_putfonts_asc_sht
    659 000007BB 83 C4 1C                        	ADD	ESP,28
