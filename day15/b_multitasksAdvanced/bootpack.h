@@ -25,8 +25,9 @@ void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
 void asm_inthandler20(void);
-void taskswitch4(void);
 
+void taskswitch4(void);
+void taskswitch3(void);
 /*memory.c*/
 //内存检查,内存分配
 #define EFLAGS_AC_BIT 0x00040000

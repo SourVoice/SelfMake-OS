@@ -89,3 +89,4 @@ install :
 	$(MAKE) img
 	$(IMGTOL) w a: haribote.img
 
+src_only:

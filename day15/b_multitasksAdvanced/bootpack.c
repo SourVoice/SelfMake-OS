@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include "bootpack.h"
 /*extern+声明形式表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
-struct FIFO32 fifo;
-struct TSS32 tss_a, tss_b;
 /*bootpack.c*/
 void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
 void task_b_main(void);                                                           /*b任务执行内容*/
 void HariMain(void)
 {
+    struct FIFO32 fifo;
     static char keytable[0x54] = {0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
                                   'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0, 0, 'A', 'S',
                                   'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0, 0, ']', 'Z', 'X', 'C',
@@ -21,11 +20,12 @@ void HariMain(void)
     char *vram = binfo->vram;
     char s[40];
     int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
-    int task_b_esp;
+    int task_b_esp;   /*任务b的栈*/
     struct TIMER *timer, *timer2, *timer3;
     int mouse_x = 0, mouse_y = 0;
     int cursor_x, cursor_c; /*cursor_x光标显示位置变量,没输入一个字符该变量递增8,cursor_c表示光标颜色,每0.5s变化一次*/
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+    struct TSS32 tss_a, tss_b;
 
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR; /*memman需要32KB大小用于存储内存空间可用分配信息，我们使用从0x003c0000号地址以后*/
     struct MOUSE_DEC mdec;                                /*d代表decode,phase阶段,记录数据接受的阶段*/
@@ -109,8 +109,8 @@ void HariMain(void)
 
     set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32); /*tss+a定义在gdt三号,段长103字节*/
     set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
-    task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024;
-    load_tr(3 * 8);
+    task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024; /*任务b在栈上分配64kb*/
+    load_tr(3 * 8);                                              /*a任务(gdt 3号)*/
 
     tss_b.eip = (int)&task_b_main; /*eip寄存器中记录了要跳转任务的开始位置,这里直接给到task_b_main的地址*/
     tss_b.eflags = 0x00000202;     /* IF = 1; */
@@ -310,8 +310,30 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
 }
 void task_b_main(void)
 {
+    struct FIFO32 fifo;
+    struct TIMER *timer;
+    int data, fifobuf[128];
+
+    fifo32_init(&fifo, 128, fifobuf);
+    timer = timer_alloc();
+    timer_init(timer, &fifo, 1); /*timer用1记录*/
+    timer_settime(timer, 500);
+
     for (;;)
     {
-        io_hlt();
+        io_cli();
+        if (fifo32_status(&fifo) == 0) /*缓冲区取不到值终止*/
+        {
+            io_stihlt();
+        }
+        else
+        {
+            data = fifo32_get(&fifo); /*从fifo中读到1*/
+            io_sti();
+            if (data == 1)
+            {
+                taskswitch3(); /*切换回A*/
+            }
+        }
     }
 }

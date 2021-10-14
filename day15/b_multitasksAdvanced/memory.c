@@ -130,7 +130,7 @@ int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size)
         man->free[i].size = size;
         return 0;
     }
-    man->lostsize++;
+    man->losts++; /*不能向后移动*/
     man->lostsize += size;
     return -1;
 }

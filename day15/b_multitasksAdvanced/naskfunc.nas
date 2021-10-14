@@ -19,7 +19,7 @@ GLOBAL          _load_tr
 GLOBAL          _memtest_sub
 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
 EXTERN          _inthandler20,_inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部   
-GLOBAL          _taskswitch4
+GLOBAL          _taskswitch4,_taskswitch3
 [SECTION .text]
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
@@ -190,7 +190,9 @@ _asm_inthandler27:
         pop     es
         IRETD                           
 
-_taskswitch4:   ;void taskswitch4(void)执行far模式跳转指令
+_taskswitch4:   ;void taskswitch4(void),切换任务B,并执行far模式的跳转指令
         jmp     4*8:0
         RET
-        
+_taskswitch3:   ;void taskswitch3(void)切换任务A
+        jmp     3*8:0
+        RET
