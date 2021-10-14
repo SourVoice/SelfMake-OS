@@ -28,9 +28,8 @@ void HariMain(void)
     char *vram = binfo->vram;
     char s[40];
     int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
-    int task_b_esp;   /*任务b的栈*/
+    int task_b_esp;   /*任务b的栈开始地址*/
     struct TIMER *timer, *timer2, *timer3;
-    struct TIMER *timer_ts;
     int mouse_x = 0, mouse_y = 0;
     int cursor_x, cursor_c; /*cursor_x光标显示位置变量,没输入一个字符该变量递增8,cursor_c表示光标颜色,每0.5s变化一次*/
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
@@ -46,7 +45,6 @@ void HariMain(void)
     unsigned char *buf_back, buf_mouse[256], *buf_win; /*buf_mouse 图像内容*/
 
     init_gdtidt();
-
     init_pic();
     io_sti(); /*中断IF设为1，即开放CPU中断*/
 
@@ -62,9 +60,6 @@ void HariMain(void)
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
     /*时钟中断设置*/
-    timer_ts = timer_alloc();
-    timer_init(timer_ts, &fifo, 2);
-    timer_settime(timer_ts, 2);
 
     timer = timer_alloc();
     timer_init(timer, &fifo, 10);
@@ -96,7 +91,7 @@ void HariMain(void)
     init_screen(buf_back, binfo->scrnx, binfo->scrny);
     init_mouse_cursor8(buf_mouse, 99); /* 背景色号99 */
     make_window(buf_win, 160, 52, "window");
-    putfonts8_asc(buf_win, 160, COL8_000000, 24, 44, "This OS!");
+    // putfonts8_asc(buf_win, 160, COL8_000000, 24, 44, "This OS!");
     sheet_slide(sht_back, 0, 0);
     mouse_x = (binfo->scrnx - 16) / 2; /* 按显示在画面中央来计算坐标 */
     mouse_y = (binfo->scrny - 28 - 16) / 2;
@@ -142,6 +137,8 @@ void HariMain(void)
     tss_b.gs = 1 * 8;
 
     *((int *)(task_b_esp + 4)) = (int)sht_back; /*使task_b能够读取到sht_back的内容(这里找了一个地址将其内容存入)*/
+    mt_init();
+
     for (;;)
     {
         io_cli();                      /*屏蔽中断(一次只执行一次中断处理)*/
@@ -153,12 +150,7 @@ void HariMain(void)
         {
             data = fifo32_get(&fifo);
             io_sti();
-            if (data == 2)
-            {
-                farjmp(0, 4 * 8);
-                timer_settime(timer_ts, 2);
-            }
-            else if (256 <= data && data <= 511)
+            if (256 <= data && data <= 511)
             {
                 sprintf(s, "%02x", data - 256);
                 putfonts_asc_sht(sht_back, 0, 16, COL8_ffffff, COL8_008484, s, 2);
@@ -329,7 +321,7 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
 void task_b_main(struct SHEET *sht_back)
 {
     struct FIFO32 fifo;
-    struct TIMER *timer_ts, *timer_put, *timer_1s;
+    struct TIMER *timer_put, *timer_1s;
     int data, fifobuf[128], count = 0, count0 = 0;
     char s[12];
 

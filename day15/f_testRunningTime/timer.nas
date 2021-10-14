@@ -7,7 +7,9 @@
 	EXTERN	_io_load_eflags
 	EXTERN	_io_cli
 	EXTERN	_io_store_eflags
+	EXTERN	_mt_timer
 	EXTERN	_fifo32_put
+	EXTERN	_mt_taskswitch
 [FILE "timer.c"]
 [SECTION .text]
 	GLOBAL	_init_pit
@@ -119,16 +121,18 @@ L28:
 _inthandler20:
 	PUSH	EBP
 	MOV	EBP,ESP
+	PUSH	ESI
 	PUSH	EBX
+	XOR	ESI,ESI
 	PUSH	96
 	PUSH	32
 	CALL	_io_out8
-	POP	ECX
 	MOV	EAX,DWORD [_timerctl]
-	POP	EBX
 	INC	EAX
 	MOV	DWORD [_timerctl],EAX
 	CMP	DWORD [_timerctl+4],EAX
+	POP	ECX
+	POP	EBX
 	JA	L29
 	MOV	EBX,DWORD [_timerctl+8]
 L31:
@@ -136,20 +140,37 @@ L31:
 	CMP	EAX,DWORD [_timerctl]
 	JA	L32
 	MOV	DWORD [8+EBX],1
+	CMP	EBX,DWORD [_mt_timer]
+	JE	L35
 	PUSH	DWORD [16+EBX]
 	PUSH	DWORD [12+EBX]
 	CALL	_fifo32_put
 	POP	EAX
-	MOV	EBX,DWORD [EBX]
 	POP	EDX
+L36:
+	MOV	EBX,DWORD [EBX]
 	JMP	L31
+L35:
+	MOV	ESI,1
+	JMP	L36
 L32:
-	MOV	DWORD [_timerctl+8],EBX
 	MOV	DWORD [_timerctl+4],EAX
+	MOV	DWORD [_timerctl+8],EBX
+	MOV	EAX,ESI
+	TEST	AL,AL
+	JNE	L38
 L29:
-	MOV	EBX,DWORD [-4+EBP]
-	LEAVE
+	LEA	ESP,DWORD [-8+EBP]
+	POP	EBX
+	POP	ESI
+	POP	EBP
 	RET
+L38:
+	LEA	ESP,DWORD [-8+EBP]
+	POP	EBX
+	POP	ESI
+	POP	EBP
+	JMP	_mt_taskswitch
 	GLOBAL	_timerctl
 [SECTION .data]
 	ALIGNB	16

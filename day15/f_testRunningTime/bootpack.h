@@ -11,24 +11,24 @@ void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
 void io_stihlt(void);
+int io_in8(int port);
 void io_out8(int port, int data);
-unsigned char io_in8(int port);
 int io_load_eflags(void);            /*取出eflag寄存器的值*/
 void io_store_eflags(int eflags);    /*向eflags寄存器写入内容*/
 void load_gdtr(int limit, int addr); /*将GDT加载到内存指定位置*/
 void load_idtr(int limit, int addr); /*将IDT加载到内存指定位置*/
 int load_cr0(void);                  /*取出CR0寄存器值*/
 void store_cr0(int cr0);
-void load_tr(int tr); /*写入tr寄存器*/                          /*向CR0寄存器写入值*/
-unsigned int memtest_sub(unsigned int start, unsigned int end); /*内存检查*/
+void load_tr(int tr); /*写入tr寄存器*/ /*向CR0寄存器写入值*/
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
 void asm_inthandler20(void);
 
+unsigned int memtest_sub(unsigned int start, unsigned int end); /*内存检查*/
+
 void farjmp(int eip, int cs);
-/*memory.c*/
-//内存检查,内存分配
+/*memory.c  内存检查,内存分配*/
 #define EFLAGS_AC_BIT 0x00040000
 #define CR0_CACHE_DISABLE 0x60000000 /*缓存禁用*/
 #define MEMMAN_FREES 4090            /*32KB*/
