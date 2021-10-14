@@ -4,7 +4,7 @@
 /*bootpack.c*/
 void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
-void task_b_main(void);                                                           /*b任务执行内容*/
+void task_b_main(struct SHEET *sht_back);                                         /*b任务执行内容*/
 struct TSS32                                                                      /*task status segment(TSS)任务状态段,同属内存段一种*/
 {
     int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3; /*保存和任务设置相关信息*/
@@ -141,7 +141,7 @@ void HariMain(void)
     tss_b.fs = 1 * 8;
     tss_b.gs = 1 * 8;
 
-    *((int *)0x0fec) = (int)sht_back; /*使task_b能够读取到sht_back的内容(这里找了一个地址将其内容存入)*/
+    *((int *)task_b_esp + 4) = (int)sht_back; /*使task_b能够读取到sht_back的内容(这里找了一个地址将其内容存入)*/
     for (;;)
     {
         io_cli();                      /*屏蔽中断(一次只执行一次中断处理)*/
@@ -325,26 +325,24 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
              x0 - 1, y0 - 1, x1 + 0, y1 + 0);
     return;
 }
-void task_b_main(void)
+void task_b_main(struct SHEET *sht_back)
 {
     struct FIFO32 fifo;
-    struct TIMER *timer_ts;
+    struct TIMER *timer_ts, *timer_put;
     int data, fifobuf[128], count = 0;
-    char s[11];
-    struct SHEET *sht_back;
-
-    sht_back = (struct SHEET *)*((int *)0x0fec);
+    char s[12];
 
     fifo32_init(&fifo, 128, fifobuf);
     timer_ts = timer_alloc();
-    timer_init(timer_ts, &fifo, 1); /*timer用1记录*/
+    timer_init(timer_ts, &fifo, 2); /*timer用1记录*/
     timer_settime(timer_ts, 2);
+    timer_put = timer_alloc();
+    timer_init(timer_put, &fifo, 1);
+    timer_settime(timer_put, 1);
 
     for (;;)
     {
         count++;
-        sprintf(s, "%10d", count);
-        putfonts_asc_sht(sht_back, 0, 144, COL8_ffffff, COL8_008484, s, 10);
         io_cli();
         if (fifo32_status(&fifo) == 0) /*缓冲区取不到值终止*/
         {
@@ -355,6 +353,12 @@ void task_b_main(void)
             data = fifo32_get(&fifo); /*从fifo中读到1*/
             io_sti();
             if (data == 1)
+            {
+                sprintf(s, "%11d", count);
+                putfonts_asc_sht(sht_back, 0, 144, COL8_ffffff, COL8_008484, s, 10);
+                timer_settime(timer_put, 1);
+            }
+            else if (data == 2)
             {
                 farjmp(0, 3 * 8);
                 timer_settime(timer_ts, 1);
