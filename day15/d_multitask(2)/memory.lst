@@ -72,8 +72,8 @@
     72 00000082 8B 45 08                        	MOV	EAX,DWORD [8+EBP]
     73 00000085 C7 00 00000000                  	MOV	DWORD [EAX],0
     74 0000008B C7 40 04 00000000               	MOV	DWORD [4+EAX],0
-    75 00000092 C7 40 0C 00000000               	MOV	DWORD [12+EAX],0
-    76 00000099 C7 40 08 00000000               	MOV	DWORD [8+EAX],0
+    75 00000092 C7 40 08 00000000               	MOV	DWORD [8+EAX],0
+    76 00000099 C7 40 0C 00000000               	MOV	DWORD [12+EAX],0
     77 000000A0 5D                              	POP	EBP
     78 000000A1 C3                              	RET
     79 000000A2                                 	GLOBAL	_memman_total

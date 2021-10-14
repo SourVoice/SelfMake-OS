@@ -141,6 +141,7 @@ void HariMain(void)
     tss_b.fs = 1 * 8;
     tss_b.gs = 1 * 8;
 
+    *((int *)0x0fec) = (int)sht_back; /*使task_b能够读取到sht_back的内容(这里找了一个地址将其内容存入)*/
     for (;;)
     {
         io_cli();                      /*屏蔽中断(一次只执行一次中断处理)*/
@@ -328,7 +329,11 @@ void task_b_main(void)
 {
     struct FIFO32 fifo;
     struct TIMER *timer_ts;
-    int data, fifobuf[128];
+    int data, fifobuf[128], count = 0;
+    char s[11];
+    struct SHEET *sht_back;
+
+    sht_back = (struct SHEET *)*((int *)0x0fec);
 
     fifo32_init(&fifo, 128, fifobuf);
     timer_ts = timer_alloc();
@@ -337,10 +342,13 @@ void task_b_main(void)
 
     for (;;)
     {
+        count++;
+        sprintf(s, "%10d", count);
+        putfonts_asc_sht(sht_back, 0, 144, COL8_ffffff, COL8_008484, s, 10);
         io_cli();
         if (fifo32_status(&fifo) == 0) /*缓冲区取不到值终止*/
         {
-            io_stihlt();
+            io_sti();
         }
         else
         {
