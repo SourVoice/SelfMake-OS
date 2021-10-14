@@ -82,6 +82,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 void inthandler20(int *esp)
 {
     struct TIMER *timer;
+    char ts = 0;
     io_out8(PIC0_OCW2, 0x60);                /*IRQ-00信号接受结束通知至PIC*/
     timerctl.count++;                        /*定时器中断时,计数变量+1*/
     if (timerctl.next_time > timerctl.count) /*仅判断当前中断和下一个中断*/
@@ -97,12 +98,21 @@ void inthandler20(int *esp)
         }
         /*超时*/
         timer->flags = TIMER_FLAGS_ALLOC;
-        fifo32_put(timer->fifo, timer->data);
+        if (timer != mt_timer)
+        {
+            fifo32_put(timer->fifo, timer->data);
+        }
+        else
+        {
+            ts = 1; /*mt_timer超时*/
+        }
         timer = timer->next; /*下一个定时器的地址赋给timer*/
     }
     timerctl.t0 = timer;
-    /*下一计时器的设定*/
-    timerctl.next_time = timer->timeout;
-
+    timerctl.next_time = timer->timeout; /*下一计时器的设定*/
+    if (ts != 0)
+    {
+        mt_taskswitch(); /**/
+    }
     return;
 }
