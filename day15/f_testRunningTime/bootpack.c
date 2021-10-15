@@ -2,10 +2,11 @@
 #include "bootpack.h"
 /*extern+声明形式表示定义来自外部(其他源文件)(编译太快这里会漏掉编译导致不能通过,可以小改动makefile)*/
 /*bootpack.c*/
-void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
-void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
-void task_b_main(struct SHEET *sht_back);                                         /*b任务执行内容*/
-struct TSS32                                                                      /*task status segment(TSS)任务状态段,同属内存段一种*/
+void putfonts_asc_sht(struct SHEET *sht, int x, int y, int color, int bg_color, char *s, int l); /*集成boxfill,putfonts8_asc,sheet_refresh*/
+void make_window(unsigned char *buf, int xsize, int ysize, char *title);                         /*暂时绘制窗口*/
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color);                /*描述文字输入背景*/
+void task_b_main(struct SHEET *sht_back);                                                        /*b任务执行内容*/
+struct TSS32                                                                                     /*task status segment(TSS)任务状态段,同属内存段一种*/
 {
     int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3; /*保存和任务设置相关信息*/
     int eip, eax, ecx, edx, ebx, esp, ebp, esi, edi;    /*32位寄存器,包括eflags*/
@@ -359,4 +360,12 @@ void task_b_main(struct SHEET *sht_back)
             }
         }
     }
+}
+void putfonts_asc_sht(struct SHEET *sht, int x, int y, int color, int bg_color, char *s, int l)
+/*x,y显示坐标位置,c for 字符颜色,b for 背景颜色 ,s for string, l for length of string*/
+{
+    boxfill8(sht->buf, sht->bxsize, bg_color, x, y, x + l * 8 - 1, y + 15);
+    putfonts8_asc(sht->buf, sht->bxsize, color, x, y, s);
+    sheet_refresh(sht, x, y, x + 1 * 8, y + 16);
+    return;
 }

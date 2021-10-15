@@ -5,22 +5,22 @@
 void init_palette(void)
 {
     static unsigned char table_rgb[16 * 3] = {
-        0x00, 0x00, 0x00, /**/
-        0xff, 0x00, 0x00, /**/
-        0x00, 0xff, 0x00, /**/
-        0xff, 0xff, 0x00, /**/
-        0x00, 0x00, 0xff, /**/
-        0xff, 0x00, 0xff, /**/
-        0x00, 0xff, 0xff, /**/
-        0xff, 0xff, 0xff, /**/
-        0xc6, 0xc6, 0xc6, /**/
-        0x84, 0x00, 0x00, /**/
-        0x00, 0x84, 0x00, /**/
-        0x84, 0x84, 0x00, /**/
-        0x00, 0x00, 0x84, /**/
-        0x84, 0x00, 0x84, /**/
-        0x00, 0x84, 0x84, /**/
-        0x84, 0x84, 0x84, /**/
+        0x00, 0x00, 0x00, /*  0:黑 */
+        0xff, 0x00, 0x00, /*  1:梁红 */
+        0x00, 0xff, 0x00, /*  2:亮绿 */
+        0xff, 0xff, 0x00, /*  3:亮黄 */
+        0x00, 0x00, 0xff, /*  4:亮蓝 */
+        0xff, 0x00, 0xff, /*  5:亮紫 */
+        0x00, 0xff, 0xff, /*  6:浅亮蓝 */
+        0xff, 0xff, 0xff, /*  7:白 */
+        0xc6, 0xc6, 0xc6, /*  8:亮灰 */
+        0x84, 0x00, 0x00, /*  9:暗红 */
+        0x00, 0x84, 0x00, /* 10:暗绿 */
+        0x84, 0x84, 0x00, /* 11:暗黄 */
+        0x00, 0x00, 0x84, /* 12:暗青 */
+        0x84, 0x00, 0x84, /* 13:暗紫 */
+        0x00, 0x84, 0x84, /* 14:浅暗蓝 */
+        0x84, 0x84, 0x84  /* 15:暗灰 */
     };
     set_palette(0, 15, table_rgb);
     return;
@@ -39,6 +39,19 @@ void set_palette(int start, int end, unsigned char *rgb)
         rgb += 3;
     }
     io_store_eflags(eflags);
+    return;
+}
+/*初始化屏幕,填充颜色,0表示左上角,1表示右上角*/
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
+{
+    int x, y;
+    for (y = y0; y <= y1; y++)
+    {
+        for (x = x0; x <= x1; x++)
+        {
+            vram[y * xsize + x] = c; /*色号给到指定vram处*/
+        }
+    }
     return;
 }
 void init_screen(unsigned char *vram, int xsize, int ysize)
@@ -62,17 +75,6 @@ void init_screen(unsigned char *vram, int xsize, int ysize)
     boxfill8(vram, xsize, COL8_ffffff, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
 }
 
-/*显示字符串*/
-void putfonts8_asc(unsigned char *vram, int xsize, unsigned char color, int x, int y, unsigned char *str)
-{
-    extern char hankaku[4096];
-    for (; *str != 0x00; str++)
-    {
-        putfont8(vram, xsize, color, x, y, hankaku + (*str) * 16);
-        x += 8;
-    }
-    return;
-}
 /*显示字体*/
 void putfont8(char *vram, int xsize, char color, int x, int y, char *font)
 {
@@ -102,16 +104,14 @@ void putfont8(char *vram, int xsize, char color, int x, int y, char *font)
     }
     return;
 }
-/*初始化屏幕,填充颜色,0表示左上角,1表示右上角*/
-void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1)
+/*显示字符串*/
+void putfonts8_asc(unsigned char *vram, int xsize, unsigned char color, int x, int y, unsigned char *str)
 {
-    int x, y;
-    for (y = y0; y <= y1; y++)
+    extern char hankaku[4096];
+    for (; *str != 0x00; str++)
     {
-        for (x = x0; x <= x1; x++)
-        {
-            vram[y * xsize + x] = c; /*色号给到指定vram处*/
-        }
+        putfont8(vram, xsize, color, x, y, hankaku + *str * 16);
+        x += 8;
     }
     return;
 }
@@ -155,7 +155,8 @@ void init_mouse_cursor8(char *mouse, char bc_color)
     }
     return;
 }
-void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0, int py0, char *buf, int bxsize)
+void putblock8_8(char *vram, int vxsize, int pxsize, int pysize,
+                 int px0, int py0, char *buf, int bxsize)
 {
     int x, y;
     for (y = 0; y < pysize; y++) /*这里的坐标从0开始,到pysize结束,是屏幕的 ys*/
@@ -165,13 +166,5 @@ void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0, int py
             *(vram + (y + py0) * vxsize + (x + px0)) = *(buf + y * bxsize + x);
         }
     }
-    return;
-}
-void putfonts_asc_sht(struct SHEET *sht, int x, int y, int color, int bg_color, char *s, int l)
-/*x,y显示坐标位置,c for 字符颜色,b for 背景颜色 ,s for string, l for length of string*/
-{
-    boxfill8(sht->buf, sht->bxsize, bg_color, x, y, x + l * 8 - 1, y + 15);
-    putfonts8_asc(sht->buf, sht->bxsize, color, x, y, s);
-    sheet_refresh(sht, x, y, x + 1 * 8, y + 16);
     return;
 }

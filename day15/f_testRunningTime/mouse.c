@@ -2,6 +2,17 @@
 struct FIFO32 *mousefifo;
 int mousedata0;
 
+void inthandler2c(int *esp)
+{
+    int data;
+    io_out8(PIC1_OCW2, 0x64); /*通知PIC1 IRQ-12受理完成*/
+    io_out8(PIC0_OCW2, 0x62); /*通知PIC0 IRQ-02受理完成*/
+    data = io_in8(PORT_KEYDAT);
+    fifo32_put(mousefifo, data + mousedata0);
+    return;
+}
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
 void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec)
 {
     /*将FIFO缓冲区的信息保存到全局变量*/
@@ -15,6 +26,7 @@ void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec)
     mdec->phase = 0;                       /*0xfa送过来时舍去这阶段*/
     return;
 }
+
 int mouse_decode(struct MOUSE_DEC *mdec, int data)
 {
     if (mdec->phase == 0)
@@ -61,13 +73,4 @@ int mouse_decode(struct MOUSE_DEC *mdec, int data)
         return 1;
     }
     return -1;
-}
-void inthandler2c(int *esp)
-{
-    int data;
-    io_out8(PIC1_OCW2, 0x64); /*通知PIC1 IRQ-12受理完成*/
-    io_out8(PIC0_OCW2, 0x62); /*通知PIC0 IRQ-02受理完成*/
-    data = io_in8(PORT_KEYDAT);
-    fifo32_put(mousefifo, data + mousedata0);
-    return;
 }

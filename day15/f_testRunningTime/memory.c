@@ -1,35 +1,46 @@
-
 #include "bootpack.h"
+
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000 /*缓存禁用*/
+
 unsigned int memtest(unsigned int start, unsigned int end)
 {
-    char flag486 = 0;
+    char flg486 = 0;
     unsigned int eflg, cr0, i;
-    /*检查CPU为386还是486(有无高速缓存的区别)*/
+
+    /* 确认CPU是386还是486以上的 */
     eflg = io_load_eflags();
-    eflg |= EFLAGS_AC_BIT; /*AC-bit = 1*/
+    eflg |= EFLAGS_AC_BIT; /* AC-bit = 1 */
     io_store_eflags(eflg);
     eflg = io_load_eflags();
-    if ((eflg & EFLAGS_AC_BIT) != 0) /*486系列处理器EFLAGs寄存器第18位为AC标志*/
+    if ((eflg & EFLAGS_AC_BIT) != 0)
     {
-        flag486 = 1;
+        /* 如果是386，即使设定AC=1，AC的值还会自动回到0 */
+        flg486 = 1;
     }
-    eflg &= ~EFLAGS_AC_BIT; /*AC-bit = 0*/
+
+    eflg &= ~EFLAGS_AC_BIT; /* AC-bit = 0 */
     io_store_eflags(eflg);
-    if (flag486 != 0)
+
+    if (flg486 != 0)
     {
         cr0 = load_cr0();
-        cr0 |= CR0_CACHE_DISABLE;
-        store_cr0(cr0); /*缓存禁用*/
+        cr0 |= CR0_CACHE_DISABLE; /* 禁止缓存 */
+        store_cr0(cr0);
     }
+
     i = memtest_sub(start, end);
-    if (flag486 != 0)
+
+    if (flg486 != 0)
     {
         cr0 = load_cr0();
-        cr0 &= ~CR0_CACHE_DISABLE;
-        store_cr0(cr0); /*启用缓存*/
+        cr0 &= ~CR0_CACHE_DISABLE; /* 允许缓存 */
+        store_cr0(cr0);
     }
+
     return i;
 }
+
 void memman_init(struct MEMMAN *man)
 {
     man->frees = 0;    /* 可用信息数目 */
@@ -38,6 +49,7 @@ void memman_init(struct MEMMAN *man)
     man->losts = 0;    /* 释放失败次数 */
     return;
 }
+
 unsigned int memman_total(struct MEMMAN *man)
 {
     unsigned int i, t = 0; /*t for memory abaiable*/
@@ -47,6 +59,7 @@ unsigned int memman_total(struct MEMMAN *man)
     }
     return t;
 }
+
 unsigned int memman_alloc(struct MEMMAN *man, unsigned int size)
 {
     unsigned int i, a;
@@ -55,8 +68,8 @@ unsigned int memman_alloc(struct MEMMAN *man, unsigned int size)
         if (man->free[i].size >= size) /*free[i].addr处有size可用*/
         {
             a = man->free[i].addr;
-            man->free[i].size -= size;  /*可用空间大小减少size*/
             man->free[i].addr += size;  /*可用空间地址向后推进size*/
+            man->free[i].size -= size;  /*可用空间大小减少size*/
             if (man->free[i].size == 0) /*free[i]处空间已满*/
             {
                 man->frees--; /*可用空余空间数减一*/
