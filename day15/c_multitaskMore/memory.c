@@ -32,10 +32,10 @@ unsigned int memtest(unsigned int start, unsigned int end)
 }
 void memman_init(struct MEMMAN *man)
 {
-    man->frees = 0;
-    man->maxfrees = 0;
-    man->losts = 0;
-    man->lostsize = 0;
+    man->frees = 0;    /* 可用信息数目 */
+    man->maxfrees = 0; /* 用于观察可用状况：frees的最大值 */
+    man->lostsize = 0; /* 释放失败的内存的大小总和 */
+    man->losts = 0;    /* 释放失败次数 */
     return;
 }
 unsigned int memman_total(struct MEMMAN *man)
@@ -46,7 +46,7 @@ unsigned int memman_total(struct MEMMAN *man)
         t += man->free[i].size;
     }
     return t;
-} //audio_enjoyment
+}
 unsigned int memman_alloc(struct MEMMAN *man, unsigned int size)
 {
     unsigned int i, a;

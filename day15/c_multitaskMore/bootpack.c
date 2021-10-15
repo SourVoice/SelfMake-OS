@@ -5,6 +5,14 @@
 void make_window(unsigned char *buf, int xsize, int ysize, char *title);          /*暂时绘制窗口*/
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color); /*描述文字输入背景*/
 void task_b_main(void);                                                           /*b任务执行内容*/
+struct TSS32                                                                      /*task status segment(TSS)任务状态段,同属内存段一种*/
+{
+    int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3; /*保存和任务设置相关信息*/
+    int eip, eax, ecx, edx, ebx, esp, ebp, esi, edi;    /*32位寄存器,包括eflags*/
+    int eflags;
+    int es, cs, ss, ds, fs, gs; /*16位寄存器*/
+    int ldtr, iomap;
+};
 void HariMain(void)
 {
     struct FIFO32 fifo;
@@ -22,6 +30,7 @@ void HariMain(void)
     int fifobuf[128]; /*mousebuf 消息中断缓存与下面有区别*/
     int task_b_esp;   /*任务b的栈*/
     struct TIMER *timer, *timer2, *timer3;
+    struct TIMER *timer_ts;
     int mouse_x = 0, mouse_y = 0;
     int cursor_x, cursor_c; /*cursor_x光标显示位置变量,没输入一个字符该变量递增8,cursor_c表示光标颜色,每0.5s变化一次*/
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
@@ -53,6 +62,9 @@ void HariMain(void)
     io_out8(PIC1_IMR, 0xef); /*开放鼠标中断*/
 
     /*时钟中断设置*/
+    timer_ts = timer_alloc();
+    timer_init(timer_ts, &fifo, 2);
+    timer_settime(timer_ts, 2);
 
     timer = timer_alloc();
     timer_init(timer, &fifo, 10);
@@ -77,13 +89,13 @@ void HariMain(void)
     sht_mouse = sheet_alloc(shtctl);
     sht_win = sheet_alloc(shtctl);
     buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
-    buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68);     /*为任务b分配64KB*/
+    buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 52);
     sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 没有透明色 */
     sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);                   /* 透明色号99 */
-    sheet_setbuf(sht_win, buf_win, 160, 68, -1);
+    sheet_setbuf(sht_win, buf_win, 160, 52, -1);
     init_screen(buf_back, binfo->scrnx, binfo->scrny);
     init_mouse_cursor8(buf_mouse, 99); /* 背景色号99 */
-    make_window(buf_win, 160, 68, "window");
+    make_window(buf_win, 160, 52, "window");
     putfonts8_asc(buf_win, 160, COL8_000000, 24, 44, "This OS!");
     sheet_slide(sht_back, 0, 0);
     mouse_x = (binfo->scrnx - 16) / 2; /* 按显示在画面中央来计算坐标 */
@@ -94,7 +106,7 @@ void HariMain(void)
     sheet_updown(sht_win, 1);
     sheet_updown(sht_mouse, 2);
     sprintf(s, "(%3d, %3d)", mouse_x, mouse_y);
-    putfonts8_asc(buf_back, binfo->scrnx, 0, 0, 0, s);
+    putfonts_asc_sht(sht_back, 0, 0, COL8_ffffff, COL8_008484, s, 10);
     sprintf(s, "memory %dMB free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts_asc_sht(sht_back, 0, 32, COL8_ffffff, COL8_008484, s, 40); /* 刷新文字 */
 
@@ -109,8 +121,8 @@ void HariMain(void)
 
     set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32); /*tss+a定义在gdt三号,段长103字节*/
     set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
-    task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024; /*任务b在栈上分配64kb*/
-    load_tr(3 * 8);                                              /*a任务(gdt 3号)*/
+    task_b_esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8; /*任务b在栈上分配64kb*/
+    load_tr(3 * 8);                                                  /*a任务(gdt 3号)*/
 
     tss_b.eip = (int)&task_b_main; /*eip寄存器中记录了要跳转任务的开始位置,这里直接给到task_b_main的地址*/
     tss_b.eflags = 0x00000202;     /* IF = 1; */
@@ -140,7 +152,12 @@ void HariMain(void)
         {
             data = fifo32_get(&fifo);
             io_sti();
-            if (256 <= data && data <= 511)
+            if (data == 2)
+            {
+                farjmp(0, 4 * 8);
+                timer_settime(timer_ts, 2);
+            }
+            else if (256 <= data && data <= 511)
             {
                 sprintf(s, "%02x", data - 256);
                 putfonts_asc_sht(sht_back, 0, 16, COL8_ffffff, COL8_008484, s, 2);
@@ -213,7 +230,6 @@ void HariMain(void)
             else if (data == 10)
             {
                 putfonts_asc_sht(sht_back, 0, 64, COL8_ffffff, COL8_008484, "10[sec]", 7);
-                taskswitch4(); /*运行10s后切换任务*/
             }
             else if (data == 3)
             {
@@ -311,13 +327,13 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int color)
 void task_b_main(void)
 {
     struct FIFO32 fifo;
-    struct TIMER *timer;
+    struct TIMER *timer_ts;
     int data, fifobuf[128];
 
     fifo32_init(&fifo, 128, fifobuf);
-    timer = timer_alloc();
-    timer_init(timer, &fifo, 1); /*timer用1记录*/
-    timer_settime(timer, 500);
+    timer_ts = timer_alloc();
+    timer_init(timer_ts, &fifo, 1); /*timer用1记录*/
+    timer_settime(timer_ts, 2);
 
     for (;;)
     {
@@ -332,7 +348,8 @@ void task_b_main(void)
             io_sti();
             if (data == 1)
             {
-                taskswitch3(); /*切换回A*/
+                farjmp(0, 3 * 8);
+                timer_settime(timer_ts, 1);
             }
         }
     }

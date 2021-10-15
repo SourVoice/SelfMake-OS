@@ -111,14 +111,7 @@ struct GATE_DESCRIPTOR
     char dw_count, access_right;
     short offset_high;
 };
-struct TSS32 /*task status segment(TSS)任务状态段,同属内存段一种*/
-{
-    int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3; /*保存和任务设置相关信息*/
-    int eip, eax, ecx, edx, ebx, esp, ebp, esi, edi;    /*32位寄存器,包括eflags*/
-    int eflags;
-    int es, cs, ss, ds, fs, gs; /*16位寄存器*/
-    int ldtr, iomap;
-};
+
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);

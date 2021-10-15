@@ -82,7 +82,7 @@ run :
 	$(DEL) bootpack.bim
 	$(DEL) bootpack.hrb
 	$(DEL) haribote.sys
-	$(DEL) haribote.img
+	# $(DEL) haribote.img
 
 
 install :

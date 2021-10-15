@@ -16,24 +16,29 @@ GLOBAL          _io_load_eflags,_io_store_eflags
 GLOBAL          _load_gdtr,_load_idtr
 GLOBAL          _load_cr0,_store_cr0
 GLOBAL          _load_tr
-GLOBAL          _memtest_sub
 GLOBAL          _asm_inthandler21,_asm_inthandler27,_asm_inthandler2c,_asm_inthandler20
+GLOBAL          _memtest_sub
 GLOBAL          _farjmp
 EXTERN          _inthandler20,_inthandler21,_inthandler27,_inthandler2c       ;中断处理程序 ,extern表示函数声明在外部 
 [SECTION .text]
+
 _io_hlt:                                ;void io_hlt(void),函数声明+定义
         hlt
-        RET                             
+        RET
+
 _io_cli:                                ;中断标志置为0
         cli
         RET
+
 _io_sti:                                ;中断标志置为1
         sti
-        RET     
+        RET 
+
 _io_stihlt:             ; void io_stihlt(void);
         sti
         hlt
         RET
+
 _io_in8:
         mov     edx,[esp+4]
         mov     eax,0
@@ -59,8 +64,8 @@ _io_out16:
         out     dx,ax
         RET
 _io_out32:
-        mov     edx,[esp+4]
-        mov     eax,[esp+8]
+        mov     edx,[esp+4]     ;接口
+        mov     eax,[esp+8]     ;数据
         out     dx,EAX
         RET
 
@@ -68,11 +73,13 @@ _io_load_eflags:
         pushfd                  
         pop     eax             
         RET
+
 _io_store_eflags:
         mov     eax,[esp+4]     ;esp栈底指针
         push    eax
         popfd
-        RET        
+        RET    
+
 _load_gdtr:
         mov     ax,[esp+4]
         mov     [esp+6],ax
@@ -83,15 +90,18 @@ _load_idtr:
         mov     [esp+6],ax
         LIDT    [esp+6]
         RET
+
 _load_cr0:      ;int store_cr0(void)
         mov     eax,CR0
         RET
-_load_tr:       ;void load_tr(int tr) 写入tr寄存器
-        ltr     [esp+4]
-        RET
+
 _store_cr0:     ;void store_cr0(int cr0)
         mov     eax,[esp+4]
         mov     CR0,EAX
+        RET
+
+_load_tr:       ;void load_tr(int tr) 写入tr寄存器
+        ltr     [esp+4]
         RET
 
 _memtest_sub:   ;unsigned int memtest_sub(unsigned int start,unsigned int end);(内存检查函数)
