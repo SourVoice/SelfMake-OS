@@ -207,22 +207,32 @@ struct TSS32
 };
 #define MAX_TASKS 1000
 #define TASK_GDT0 3 /*从GDT的3号开始分配给TSS*/
+#define MAX_TASKS_LV 100
+#define MAX_TASKLEVELS 10
 struct TASK
 {
 	int sel, flags; /*sel存放GDT的编号*/
-	int priority;	/*任务优先级设置*/
+	int level;
+	int priority; /*任务优先级设置*/
 	struct TSS32 tss;
+};
+struct TASKLEVEL
+{
+	int running;					  /*总正在运行的任务数量*/
+	int now;						  /*记录当前正在运行的是哪个任务*/
+	struct TASK *tasks[MAX_TASKS_LV]; /*每个level最多允许100个task*/
 };
 struct TASKCTL
 {
-	int running;				   /*正在运行的任务数量*/
-	int now;					   /*这个变量用于记录当前正在运行的程序*/
-	struct TASK *tasks[MAX_TASKS]; /*记录任务地址*/
-	struct TASK tasks0[MAX_TASKS]; /*记录任务状态(以struct TASK为元素的数组)*/
+	int now_lv;								/*当前活动中的level*/
+	char lv_change;							/*在下次任务切换时是否需要改变LEVEL*/
+	struct TASKLEVEL level[MAX_TASKLEVELS]; /*总共10个LEVEL*/
+	struct TASK tasks0[MAX_TASKS];			/*记录任务状态(以struct TASK为元素的数组)*/
 };
 extern struct TIMER *task_timer;
 struct TASK *task_init(struct MEMMAN *mamman);
 struct TASK *task_alloc();
-void task_run(struct TASK *task, int priority);
+void task_run(struct TASK *task, int level, int priority);
 void task_switch(void);
 void task_sleep(struct TASK *task);
+struct TASK *task_now(void);
