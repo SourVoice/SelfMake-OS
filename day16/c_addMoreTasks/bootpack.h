@@ -219,6 +219,7 @@ struct TASKCTL
 	struct TASK *tasks[MAX_TASKS]; /*记录任务地址*/
 	struct TASK tasks0[MAX_TASKS]; /*记录任务状态(以struct TASK为元素的数组)*/
 };
+extern struct TIMER *task_timer;
 struct TASK *task_init(struct MEMMAN *mamman);
 struct TASK *task_alloc();
 void task_run(struct TASK *task);
