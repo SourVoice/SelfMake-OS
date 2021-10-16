@@ -2,8 +2,6 @@
 
 #include "bootpack.h"
 
-struct TIMER *mt_timer;
-
 struct TASKCTL *taskctl;
 struct TIMER *task_timer;
 struct TASK *task_init(struct MEMMAN *memman)
@@ -76,6 +74,46 @@ void task_switch(void)
 			taskctl->now = 0;
 		}
 		farjmp(0, taskctl->tasks[taskctl->now]->sel);
+	}
+	return;
+}
+void task_sleep(struct TASK *task)
+{
+	int i;
+	char ts = 0;
+	if (task->flags == 2) /*任务处于唤醒状态*/
+	{
+		if (task == taskctl->tasks[taskctl->now]) /*任务自己使自己休眠*/
+		{
+			ts = 1;
+		}
+		for (i = 0; i < taskctl->running; i++)
+		{
+			if (taskctl->tasks[i] == task)
+			{
+				break;
+			}
+		}
+		taskctl->running--;
+		if (i < taskctl->now)
+		{
+			taskctl->now--;
+		}
+		/*移动成员*/
+		for (; i < taskctl->running; i++)
+		{
+			taskctl->tasks[i] = taskctl->tasks[i + 1];
+		}
+		task->flags = 1; /*1 for not working*/
+		if (ts != 0)
+		{
+			/*任务切换*/
+			if (taskctl->now >= taskctl->running) /*前置now值*/
+			{
+				taskctl->now = 0;
+			}
+			farjmp(0, taskctl->tasks[taskctl->now]->sel);
+		}
 	}
 	return;
 }
