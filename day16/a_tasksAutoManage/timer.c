@@ -2,8 +2,8 @@
 
 #include "bootpack.h"
 
-#define PIT_CTRL	0x0043
-#define PIT_CNT0	0x0040
+#define PIT_CTRL 0x0043
+#define PIT_CNT0 0x0040
 
 struct TIMERCTL timerctl;
 
@@ -18,14 +18,15 @@ void init_pit(void)
 	io_out8(PIT_CNT0, 0x9c);
 	io_out8(PIT_CNT0, 0x2e);
 	timerctl.count = 0;
-	for (i = 0; i < MAX_TIMER; i++) {
+	for (i = 0; i < MAX_TIMER; i++)
+	{
 		timerctl.timers0[i].flags = 0; /* 没有使用 */
 	}
 	t = timer_alloc(); /* 取得一个 */
 	t->timeout = 0xffffffff;
 	t->flags = TIMER_FLAGS_USING;
-	t->next = 0; /* 末尾 */
-	timerctl.t0 = t; /* 因为现在只有哨兵，所以他就在最前面*/
+	t->next = 0;				/* 末尾 */
+	timerctl.t0 = t;			/* 因为现在只有哨兵，所以他就在最前面*/
 	timerctl.next = 0xffffffff; /* 因为只有哨兵，所以下一个超时时刻就是哨兵的时刻 */
 	return;
 }
@@ -33,8 +34,10 @@ void init_pit(void)
 struct TIMER *timer_alloc(void)
 {
 	int i;
-	for (i = 0; i < MAX_TIMER; i++) {
-		if (timerctl.timers0[i].flags == 0) {
+	for (i = 0; i < MAX_TIMER; i++)
+	{
+		if (timerctl.timers0[i].flags == 0)
+		{
 			timerctl.timers0[i].flags = TIMER_FLAGS_ALLOC;
 			return &timerctl.timers0[i];
 		}
@@ -64,19 +67,22 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 	e = io_load_eflags();
 	io_cli();
 	t = timerctl.t0;
-	if (timer->timeout <= t->timeout) {
-	/* 插入最前面的情况 */
+	if (timer->timeout <= t->timeout)
+	{
+		/* 插入最前面的情况 */
 		timerctl.t0 = timer;
 		timer->next = t; /* 下面是设定t */
 		timerctl.next = timer->timeout;
 		io_store_eflags(e);
 		return;
 	}
-	for (;;) {
+	for (;;)
+	{
 		s = t;
 		t = t->next;
-		if (timer->timeout <= t->timeout) {
-		/* 插入s和t之间的情况 */
+		if (timer->timeout <= t->timeout)
+		{
+			/* 插入s和t之间的情况 */
 			s->next = timer; /* s下一个是timer */
 			timer->next = t; /* timer的下一个是t */
 			io_store_eflags(e);
@@ -91,28 +97,35 @@ void inthandler20(int *esp)
 	char ts = 0;
 	io_out8(PIC0_OCW2, 0x60); /* 把IRQ-00接收信号结束的信息通知给PIC */
 	timerctl.count++;
-	if (timerctl.next > timerctl.count) {
+	if (timerctl.next > timerctl.count)
+	{
 		return;
 	}
 	timer = timerctl.t0; /* 首先把最前面的地址赋给timer */
-	for (;;) {
-	/* 因为timers的定时器都处于运行状态，所以不确认flags */
-		if (timer->timeout > timerctl.count) {
+	for (;;)
+	{
+		/* 因为timers的定时器都处于运行状态，所以不确认flags */
+		if (timer->timeout > timerctl.count)
+		{
 			break;
 		}
 		/* 超时 */
 		timer->flags = TIMER_FLAGS_ALLOC;
-		if (timer != mt_timer) {
+		if (timer != mt_timer)
+		{
 			fifo32_put(timer->fifo, timer->data);
-		} else {
+		}
+		else
+		{
 			ts = 1; /* mt_timer超时*/
 		}
 		timer = timer->next; /* 将下一个定时器的地址赋给timer*/
 	}
 	timerctl.t0 = timer;
 	timerctl.next = timer->timeout;
-	if (ts != 0) {
-		mt_taskswitch();
+	if (ts != 0)
+	{
+		task_switch();
 	}
 	return;
 }
