@@ -154,6 +154,7 @@ void HariMain(void)
 					}
 					else
 					{
+						key_to = 0;
 						sheet_refresh(buf_win, 0, 0, sht_win->bxsize, 21);
 						sheet_refresh(buf_cons, 0, 0, sht_cons->bxsize, 21);
 					}
