@@ -17,14 +17,15 @@ struct TASK *task_init(struct MEMMAN *memman)
 		set_segmdesc(gdt + TASK_GDT0 + i, 103, (int)&taskctl->tasks0[i].tss, AR_TSS32);
 	}
 	task = task_alloc();
-	task->flags = 2; /*任务活动标志*/
+	task->flags = 2;	/*任务活动标志*/
+	task->priority = 2; /*0.02s间隔*/
 	taskctl->running = 1;
 	taskctl->now = 0;
 	taskctl->tasks[0] = task;
 	load_tr(task->sel);
 
 	task_timer = timer_alloc();
-	timer_settime(task_timer, 2);
+	timer_settime(task_timer, task->priority);
 	return task;
 }
 struct TASK *task_alloc(void)
@@ -57,23 +58,33 @@ struct TASK *task_alloc(void)
 	}
 	return 0; /*任务均在使用(超过MAX_TASKS)*/
 }
-void task_run(struct TASK *task) /*task添加到taskctl表中*/
+void task_run(struct TASK *task, int priority) /*task添加到taskctl表中*/
 {
-	task->flags = 2;
-	taskctl->tasks[taskctl->running] = task;
-	++taskctl->running;
+	if (priority > 0) /*优先级0时不改变以经设定的优先级*/
+	{
+		task->priority = priority;
+	}
+	if (task->flags != 2)
+	{
+		task->flags = 2;
+		taskctl->tasks[taskctl->running] = task;
+		++taskctl->running;
+	}
+	return;
 }
 void task_switch(void)
 {
-	timer_settime(task_timer, 2); /*每个任务间隔0.02s*/
-	if (taskctl->running >= 2)	  /*任务进程大于1个*/
+	struct TASK *task;
+	taskctl->now++;
+	if (taskctl->now == taskctl->running) /*当now走完一遍则前置*/
 	{
-		taskctl->now++;
-		if (taskctl->now == taskctl->running) /*当now走完一遍则前置*/
-		{
-			taskctl->now = 0;
-		}
-		farjmp(0, taskctl->tasks[taskctl->now]->sel);
+		taskctl->now = 0;
+	}
+	task = taskctl->tasks[taskctl->now];
+	timer_settime(task_timer, task->priority);
+	if (taskctl->running >= 2) /*任务进程大于1个*/
+	{
+		farjmp(0, task->sel);
 	}
 	return;
 }

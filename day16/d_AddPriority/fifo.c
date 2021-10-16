@@ -37,7 +37,7 @@ int fifo32_put(struct FIFO32 *fifo, int data)
 	{
 		if (fifo->task->flags != 2) /*任务处于休眠*/
 		{
-			task_run(fifo->task); /*唤醒任务*/
+			task_run(fifo->task, 0); /*唤醒任务*/
 		}
 	}
 	return 0;
