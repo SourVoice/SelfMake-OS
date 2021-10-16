@@ -30,7 +30,7 @@ void HariMain(void)
 		0, 0, 0, 0, 0, 0, 0, '7', '8', '9', '-', '4', '5', '6', '+', '1',
 		'2', '3', '0', '.'};
 	struct TASK *task_a, *task_cons;
-	int key_to = 0;
+	int key_to = 0; /*记录键盘输入应该发送到哪里*/
 
 	init_gdtidt();
 	init_pic();
@@ -128,21 +128,42 @@ void HariMain(void)
 			{ /* 键盘数据*/
 				sprintf(s, "%02X", i - 256);
 				putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
-				if (i < 0x54 + 256)
+				if (i < 0x54 + 256 && keytable[i - 256] != 0) /*一般字符输入处理*/
 				{
-					if (keytable[i - 256] != 0 && cursor_x < 144)
+					if (key_to == 0)
 					{
-						s[0] = keytable[i - 256];
-						s[1] = 0;
-						putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
-						cursor_x += 8;
+						if (cursor_x < 128)
+						{
+							/*字符插入后光标后移*/
+							s[0] = keytable[i - 256];
+							s[1] = 0;
+							putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
+							cursor_x += 8;
+						}
 					}
-				}
-				if (i == 256 + 0x0e && cursor_x > 8)
-				{ /* 退格键 */
-					/* 用空格键把光标消去后，后移1次光标 */
-					putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
-					cursor_x -= 8;
+					else
+					{
+						fifo32_put(&task_cons->fifo, keytable[i - 256] + 256); /*数据发送到console*/
+					}
+					if (i == 256 + 0x0e) /* 退格键 */
+					{
+						if (key_to == 0)
+						{
+							if (cursor_x > 8)
+							{
+								/* 用空格键把光标消去后，后移1次光标 */
+								putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
+								cursor_x -= 8;
+							}
+						}
+						else
+						{
+							/*发送到console*/
+							fifo32_put(&task_cons->fifo, 8 + 256);
+						}
+						putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
+						cursor_x -= 8;
+					}
 				}
 				if (i == 256 + 0x0f) /*Tab键*/
 				{
@@ -152,11 +173,14 @@ void HariMain(void)
 						make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
 						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
 					}
-					else
+					else /*key_to==1则发送到console窗口*/
 					{
-						sheet_refresh(buf_win, 0, 0, sht_win->bxsize, 21);
-						sheet_refresh(buf_cons, 0, 0, sht_cons->bxsize, 21);
+						key_to = 0;
+						make_wtitle8(buf_win, sht_win->bxsize, "task_a", 1);
+						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
 					}
+					sheet_refresh(buf_win, 0, 0, sht_win->bxsize, 21);
+					sheet_refresh(buf_cons, 0, 0, sht_cons->bxsize, 21);
 				}
 				/* 光标再显示 */
 				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
@@ -326,42 +350,66 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
 
 void console_task(struct SHEET *sheet)
 {
-	struct FIFO32 fifo;
 	struct TIMER *timer;
 	struct TASK *task = task_now();
 
 	int i, fifobuf[128], cursor_x = 8, cursor_c = COL8_000000;
+	char s[2];
 
-	fifo32_init(&fifo, 128, fifobuf, task);
+	fifo32_init(&task->fifo, 128, fifobuf, task);
 	timer = timer_alloc();
-	timer_init(timer, &fifo, 1);
+	timer_init(timer, &task->fifo, 1);
 	timer_settime(timer, 50);
 
+	putfonts8_asc_sht(sheet, 8, 28, COL8_FFFFFF, COL8_000000, ">", 1);
 	for (;;)
 	{
 		io_cli();
-		if (fifo32_status(&fifo) == 0)
+		if (fifo32_status(&task->fifo) == 0)
 		{
 			task_sleep(task);
 			io_sti();
 		}
 		else
 		{
-			i = fifo32_get(&fifo);
+			i = fifo32_get(&task->fifo);
 			io_sti();
 			if (i <= 1)
 			{ /* 光标用定时器*/
 				if (i != 0)
 				{
-					timer_init(timer, &fifo, 0); /* 下面设定0 */
+					timer_init(timer, &task->fifo, 0); /* 下面设定0 */
 					cursor_c = COL8_FFFFFF;
 				}
 				else
 				{
-					timer_init(timer, &fifo, 1); /* 下面设定1 */
+					timer_init(timer, &task->fifo, 1); /* 下面设定1 */
 					cursor_c = COL8_000000;
 				}
 				timer_settime(timer, 50);
+				if (256 <= i && i <= 511)
+				{
+					if (i == 256 + 8) /* 退格键 */
+					{
+						if (cursor_x > 16)
+						{
+							/* 用空格键把光标消去后，后移1次光标 */
+							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
+							cursor_x -= 8;
+						}
+					}
+					else
+					{ /*一般字符*/
+						if (cursor_x < 240)
+						{
+							s[0] = i - 256;
+							s[1] = 0;
+							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
+							cursor_x += 8;
+						}
+					}
+				}
+				/*重新显示光标*/
 				boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
 				sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
 			}

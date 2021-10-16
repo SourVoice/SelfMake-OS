@@ -213,7 +213,8 @@ struct TASK
 {
 	int sel, flags; /*sel存放GDT的编号*/
 	int level;
-	int priority; /*任务优先级设置*/
+	int priority;		/*任务优先级设置*/
+	struct FIFO32 fifo; /*每个任务的缓冲区,在TASK中设置来更方便的获取任务的缓冲区*/
 	struct TSS32 tss;
 };
 struct TASKLEVEL
