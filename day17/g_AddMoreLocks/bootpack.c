@@ -2,6 +2,7 @@
 
 #include "bootpack.h"
 #include <stdio.h>
+#define KEYCMD_LED 0xed
 
 void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char act);
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
@@ -11,9 +12,9 @@ void console_task(struct SHEET *sheet);
 void HariMain(void)
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *)ADR_BOOTINFO;
-	struct FIFO32 fifo;
+	struct FIFO32 fifo, keycmd; /*keycmd专门管理发送数据的顺序*/
 	char s[40];
-	int fifobuf[128];
+	int fifobuf[128], keycmd_buf[32];
 	struct TIMER *timer;
 	int mx, my, i, cursor_x, cursor_c;
 	unsigned int memtotal;
@@ -36,11 +37,14 @@ void HariMain(void)
 	int key_to = 0; /*记录键盘输入应该发送到哪里*/
 	int key_shift = 0;
 	int key_leds = (binfo->leds >> 4) & 7; /*binfo->leds为从bios中取得的键盘状态,第6位为capslock状态*/
+	int keycmd_wait = -1 /*表示向键盘控制器发送数据的状态;-1表示键盘控制器可以发送指令,否则处于等待状态,所发送的数据存于keycmd_wait*/;
 
 	init_gdtidt();
 	init_pic();
 	io_sti(); /* IDT/PIC的初始化已经完成，于是开放CPU的中断 */
 	fifo32_init(&fifo, 128, fifobuf, 0);
+	fifo32_init(&keycmd, 32, keycmd_buf, 0);
+
 	init_pit();
 	init_keyboard(&fifo, 256);
 	enable_mouse(&fifo, 512, &mdec);
@@ -117,8 +121,18 @@ void HariMain(void)
 			memtotal / (1024 * 1024), memman_total(memman) / 1024);
 	putfonts8_asc_sht(sht_back, 0, 32, COL8_FFFFFF, COL8_008484, s, 40);
 
+	/*避免和当前键盘状态冲突*/
+	fifo32_put(&keycmd, KEYCMD_LED);
+	fifo32_put(&keycmd, key_leds);
+
 	for (;;)
 	{
+		if (fifo32_status(&keycmd) > 0 && keycmd_wait < 0) /*keycmd中有数据,且keycmd_wait=-1(表示可以控制器可以接收数据)*/
+		{
+			keycmd_wait = fifo32_get(&keycmd); /*取得向键盘控制器发送的数据*/
+			wait_KBC_sendready();
+			io_out8(PORT_KEYDAT, keycmd_wait);
+		}
 		io_cli();
 		if (fifo32_status(&fifo) == 0)
 		{
@@ -221,6 +235,33 @@ void HariMain(void)
 				if (i == 256 + 0xb6) /*左shift抬起*/
 				{
 					key_shift &= ~2;
+				}
+				if (i == 256 + 0x3a) /*capslock*/
+				{
+					key_leds ^= 4;
+					fifo32_put(&keycmd, KEYCMD_LED);
+					fifo32_put(&keycmd, key_leds);
+				}
+				if (i == 256 + 0x45) /*numLock*/
+				{
+					key_leds ^= 2;
+					fifo32_put(&keycmd, KEYCMD_LED);
+					fifo32_put(&keycmd, key_leds);
+				}
+				if (i == 256 + 0x46) /*scrollLock*/
+				{
+					key_leds ^= 1;
+					fifo32_put(&keycmd, KEYCMD_LED);
+					fifo32_put(&keycmd, key_leds);
+				}
+				if (i == 256 + 0xfa) /*键盘成功接收到数据*/
+				{
+					keycmd_wait = -1; /*恢复为-1继续发送下一个数据*/
+				}
+				if (i == 256 + 0xfe) /*键盘未成功接收到数据*/
+				{
+					wait_KBC_sendready();
+					io_out8(PORT_KEYDAT, keycmd_wait);
 				}
 				/* 光标再显示 */
 				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
