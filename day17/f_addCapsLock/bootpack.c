@@ -35,6 +35,7 @@ void HariMain(void)
 	struct TASK *task_a, *task_cons;
 	int key_to = 0; /*记录键盘输入应该发送到哪里*/
 	int key_shift = 0;
+	int key_leds = (binfo->leds >> 4) & 7; /*binfo->leds为从bios中取得的键盘状态,第6位为capslock状态*/
 
 	init_gdtidt();
 	init_pic();
@@ -144,9 +145,17 @@ void HariMain(void)
 						s[0] = keytable1[i - 256];
 					}
 				}
-				else
+				else /*未识别的置为0*/
 				{
 					s[0] = 0;
+				}
+				if ('A' <= s[0] && s[0] <= 'Z') /*输入为英文字母时判断大小写*/
+				{
+					/*判断小写*/
+					if (((key_leds & 4) == 0 && key_shift == 0) || ((key_leds & 4) != 0 && key_shift != 0)) /*caps松开且shift松开||大写打开且shift按下*/
+					{
+						s[0] += 0x20; /*大写转小写*/
+					}
 				}
 				if (s[0] != 0) /*一般字符输入处理*/
 				{
