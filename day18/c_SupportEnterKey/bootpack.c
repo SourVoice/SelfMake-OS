@@ -259,6 +259,13 @@ void HariMain(void)
 					fifo32_put(&keycmd, KEYCMD_LED);
 					fifo32_put(&keycmd, key_leds);
 				}
+				if (i == 256 + 0x1c) /*回车键*/
+				{
+					if (key_to != 0) /*发送数据至console*/
+					{
+						fifo32_put(&task_cons->fifo, 10 + 256);
+					}
+				}
 				if (i == 256 + 0xfa) /*键盘成功接收到数据*/
 				{
 					keycmd_wait = -1; /*恢复为-1继续发送下一个数据*/
@@ -450,7 +457,7 @@ void console_task(struct SHEET *sheet)
 	struct TIMER *timer;
 	struct TASK *task = task_now();
 
-	int i, fifobuf[128], cursor_x = 16, cursor_c = -1; /*cursor错出一个字符长度*/
+	int i, fifobuf[128], cursor_x = 16, cursor_c = -1, cursor_y = 28; /*cursor错出一个字符长度*/
 	char s[2];
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
@@ -491,13 +498,13 @@ void console_task(struct SHEET *sheet)
 				}
 				timer_settime(timer, 50);
 			}
-			if (i == 2)
-			{ /*光标ON */
+			if (i == 2) /*光标ON */
+			{
 				cursor_c = COL8_FFFFFF;
 			}
-			if (i == 3)
-			{ /*光标OFF */
-				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, 28, cursor_x + 7, 43);
+			if (i == 3) /*光标OFF */
+			{
+				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, cursor_y, cursor_x + 7, cursor_y + 15);
 				cursor_c = -1;
 			}
 			if (256 <= i && i <= 511) /*A任务发送到fifo的键盘数据*/
@@ -506,8 +513,19 @@ void console_task(struct SHEET *sheet)
 				{
 					if (cursor_x > 16) /* 用空格键把光标消去后，后移1次光标 */
 					{
-						putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
+						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
 						cursor_x -= 8;
+					}
+				}
+				else if (i == 10 + 256) /*回车键*/
+				{
+					if (cursor_y < 28 + 112) /*用空格将光标擦除*/
+					{
+						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
+						cursor_y += 16;
+						/*下一行的提示符*/
+						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
+						cursor_x = 16;
 					}
 				}
 				else /*一般字符*/
@@ -516,17 +534,17 @@ void console_task(struct SHEET *sheet)
 					{
 						s[0] = i - 256;
 						s[1] = 0;
-						putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
+						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
 						cursor_x += 8;
 					}
 				}
+				/*重新显示光标*/
+				if (cursor_c >= 0) /*光标开启*/
+				{
+					boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, cursor_y, cursor_x + 7, cursor_y + 15);
+				}
+				sheet_refresh(sheet, cursor_x, cursor_y, cursor_x + 8, cursor_y + 16);
 			}
-			/*重新显示光标*/
-			if (cursor_c >= 0) /*光标开启*/
-			{
-				boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-			}
-			sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
 		}
 	}
 }
