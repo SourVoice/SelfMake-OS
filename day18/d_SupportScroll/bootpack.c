@@ -459,6 +459,7 @@ void console_task(struct SHEET *sheet)
 
 	int i, fifobuf[128], cursor_x = 16, cursor_c = -1, cursor_y = 28; /*cursor错出一个字符长度*/
 	char s[2];
+	int x, y;
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
 	timer = timer_alloc();
@@ -522,11 +523,32 @@ void console_task(struct SHEET *sheet)
 					if (cursor_y < 28 + 112) /*用空格将光标擦除*/
 					{
 						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
-						cursor_y += 16;
-						/*下一行的提示符*/
-						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
-						cursor_x = 16;
+						if (cursor_y < 28 + 112)
+						{
+							cursor_y += 16;
+						}
+						else /*滚动*/
+						{
+							for (y = 28; y < 28 + 112; y++) /*下一行给上一行*/
+							{
+								for (x = 8; x < 8 + 240; x++)
+								{
+									sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
+								}
+							}
+							for (y = 28 + 112; y < 28 + 128; y++)
+							{
+								for (x = 8; x < 8 + 240; x++)
+								{
+									sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+								}
+							}
+							sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
+						}
 					}
+					/*下一行的提示符*/
+					putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
+					cursor_x = 16;
 				}
 				else /*一般字符*/
 				{
