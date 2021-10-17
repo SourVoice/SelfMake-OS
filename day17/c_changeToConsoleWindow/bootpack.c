@@ -158,8 +158,8 @@ void HariMain(void)
 						make_wtitle8(buf_win, sht_win->bxsize, "task_a", 1);
 						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
 					}
-					sheet_refresh(buf_win, 0, 0, sht_win->bxsize, 21);
-					sheet_refresh(buf_cons, 0, 0, sht_cons->bxsize, 21);
+					sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
+					sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
 				}
 				/* 光标再显示 */
 				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
