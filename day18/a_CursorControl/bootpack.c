@@ -205,17 +205,20 @@ void HariMain(void)
 				}
 				if (i == 256 + 0x0f) /*Tab键*/
 				{
-					if (key_to == 0)
+					if (key_to == 0) /*当前为win窗口时tab按下*/
 					{
 						key_to = 1;
 						make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
 						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
+						cursor_c = -1;																		  /*不显示光标*/
+						boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43); /*sht_win框中光标小时*/
 					}
-					else /*key_to==1则发送到console窗口*/
+					else /*key_to==1时表示数据发送到console窗口,注意这里按下了tab键*/
 					{
 						key_to = 0;
 						make_wtitle8(buf_win, sht_win->bxsize, "task_a", 1);
 						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
+						cursor_c = COL8_000000; /*win显示光标*/
 					}
 					sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
 					sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
@@ -264,14 +267,16 @@ void HariMain(void)
 					io_out8(PORT_KEYDAT, keycmd_wait);
 				}
 				/* 光标再显示 */
-				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+				if (cursor_c >= 0)
+				{
+					boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+				}
 				sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
 			}
 			else if (512 <= i && i <= 767) /* 鼠标数据*/
 			{
 				if (mouse_decode(&mdec, i - 512) != 0) /* 已经收集了3字节的数据，所以显示出来 */
 				{
-
 					sprintf(s, "[lcr %4d %4d]", mdec.x, mdec.y);
 					if ((mdec.btn & 0x01) != 0)
 					{
@@ -319,12 +324,18 @@ void HariMain(void)
 				if (i != 0)
 				{
 					timer_init(timer, &fifo, 0);
-					cursor_c = COL8_000000;
+					if (cursor_c >= 0) /*当上方tab后cursor_c置-1后任务为console,所以判断是否大于零进行闪烁*/
+					{
+						cursor_c = COL8_000000;
+					}
 				}
 				else
 				{
 					timer_init(timer, &fifo, 1);
-					cursor_c = COL8_FFFFFF;
+					if (cursor_c >= 0)
+					{
+						cursor_c = COL8_FFFFFF;
+					}
 				}
 				timer_settime(timer, 50);
 				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
