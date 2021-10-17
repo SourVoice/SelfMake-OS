@@ -143,7 +143,7 @@ void HariMain(void)
 					}
 					else
 					{
-						fifo32_put(&task_cons->fifo, keytable[i - 256] + 256); /*数据发送到console*/
+						fifo32_put(&task_cons->fifo, s[0] + 256); /*数据发送到console*/
 					}
 					if (i == 256 + 0x0e) /* 退格键 */
 					{
@@ -365,6 +365,7 @@ void console_task(struct SHEET *sheet)
 	for (;;)
 	{
 		io_cli();
+
 		if (fifo32_status(&task->fifo) == 0)
 		{
 			task_sleep(task);
@@ -394,7 +395,7 @@ void console_task(struct SHEET *sheet)
 						if (cursor_x > 16)
 						{
 							/* 用空格键把光标消去后，后移1次光标 */
-							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
+							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
 							cursor_x -= 8;
 						}
 					}
