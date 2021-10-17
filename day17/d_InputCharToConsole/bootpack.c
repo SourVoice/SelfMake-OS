@@ -147,7 +147,7 @@ void HariMain(void)
 					}
 					else
 					{
-						fifo32_put(&task_cons->fifo, s[0] + 256); /*数据发送到console*/
+						fifo32_put(&task_cons->fifo, keytable0[i - 256] + 256); /*数据发送到console*/
 					}
 					if (i == 256 + 0x0e) /* 退格键 */
 					{
@@ -357,7 +357,7 @@ void console_task(struct SHEET *sheet)
 	struct TIMER *timer;
 	struct TASK *task = task_now();
 
-	int i, fifobuf[128], cursor_x = 8, cursor_c = COL8_000000;
+	int i, fifobuf[128], cursor_x = 16, cursor_c = COL8_000000; /*cusor_x从16开始,调高">"*/
 	char s[2];
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
@@ -379,8 +379,8 @@ void console_task(struct SHEET *sheet)
 		{
 			i = fifo32_get(&task->fifo);
 			io_sti();
-			if (i <= 1)
-			{ /* 光标用定时器*/
+			if (i <= 1) /* 光标用定时器*/
+			{
 				if (i != 0)
 				{
 					timer_init(timer, &task->fifo, 0); /* 下面设定0 */
@@ -392,32 +392,31 @@ void console_task(struct SHEET *sheet)
 					cursor_c = COL8_000000;
 				}
 				timer_settime(timer, 50);
-				if (256 <= i && i <= 511)
+			}
+			if (256 <= i && i <= 511) /*通过A任务传送的键盘数据*/
+			{
+				if (i == 256 + 8) /* 退格键 */
 				{
-					if (i == 256 + 8) /* 退格键 */
+					if (cursor_x > 16) /* 用空格键把光标消去后，前移1次光标 */
 					{
-						if (cursor_x > 16)
-						{
-							/* 用空格键把光标消去后，后移1次光标 */
-							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
-							cursor_x -= 8;
-						}
-					}
-					else
-					{ /*一般字符*/
-						if (cursor_x < 240)
-						{
-							s[0] = i - 256;
-							s[1] = 0;
-							putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
-							cursor_x += 8;
-						}
+						putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
+						cursor_x -= 8;
 					}
 				}
-				/*重新显示光标*/
-				boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-				sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
+				else /*一般字符*/
+				{
+					if (cursor_x < 240) /*显示字符后光标后移*/
+					{
+						s[0] = i - 256;
+						s[1] = 0;
+						putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
+						cursor_x += 8;
+					}
+				}
 			}
+			/*重新显示光标*/
+			boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+			sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
 		}
 	}
 }
