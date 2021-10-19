@@ -505,8 +505,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, cursor_y, cursor_x + 7, cursor_y + 15);
 				cursor_c = -1;
 			}
-			if (256 <= i && i <= 511)
-			{					  /*键盘数据（通过任务A） */
+			if (256 <= i && i <= 511) /*键盘数据（通过任务A） */
+			{
 				if (i == 8 + 256) /*退格键*/
 				{
 					if (cursor_x > 16)
@@ -547,8 +547,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					}
 					else if (strcmp(cmdline, "dir") == 0 || strcmp(cmdline, "ls") == 0) /* dir命令 */
 					{
-						if (x < 224 && finfo[x].name[0] != 0x00)
+						for (x = 0; x < 224; x++)
 						{
+							if (finfo[x].name[0] == 0x00)
+							{
+								break;
+							}
 							if (finfo[x].name[0] != 0xe5)
 							{
 								if ((finfo[x].type & 0x18) == 0)
@@ -565,23 +569,19 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 									cursor_y = cons_newline(cursor_y, sheet);
 								}
 							}
-							for (x = 0; x < y; x++)
-							{
-								s[0] = p[x];
-							}
 						}
 						cursor_y = cons_newline(cursor_y, sheet);
 					}
-					else if (strncmp(cmdline, "type", 5) == 0) /*type命令(仅比较前五个字符)*/
+					else if (cmdline[0] == 't' && cmdline[1] == 'y' && cmdline[2] == 'p' && cmdline[3] == 'e' && cmdline[4] == '0') /*type命令(仅比较前五个字符)*/
 					{
 						for (y = 0; y < 11; y++)
 						{
 							s[y] = ' ';
 						}
 						y = 0;
-						for (x = 5; y = 11 && cmdline[x] != 0; x++)
+						for (x = 5; y < 11 && cmdline[x] != 0; x++)
 						{
-							if (cmdline[x] == '.' && y <= 0)
+							if (cmdline[x] == '.' && y <= 8)
 							{
 								y = 8;
 							}
@@ -590,7 +590,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 								s[y] = cmdline[x];
 								if ('a' <= s[y] && s[y] <= 'z') /*小写改为大写*/
 								{
-									s[y] -= 0x28;
+									/*将小写字母转换成大写字母 */
+									s[y] -= 0x20;
 								}
 								y++;
 							}
