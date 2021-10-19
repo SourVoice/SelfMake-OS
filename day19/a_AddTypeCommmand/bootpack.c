@@ -572,7 +572,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 						}
 						cursor_y = cons_newline(cursor_y, sheet);
 					}
-					else if (cmdline[0] == 't' && cmdline[1] == 'y' && cmdline[2] == 'p' && cmdline[3] == 'e' && cmdline[4] == '0') /*type命令(仅比较前五个字符)*/
+					else if (cmdline[0] == 't' && cmdline[1] == 'y' && cmdline[2] == 'p' && cmdline[3] == 'e' && cmdline[4] == ' ') /*type命令(仅比较前五个字符)*/
 					{
 						for (y = 0; y < 11; y++)
 						{
