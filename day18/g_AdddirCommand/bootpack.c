@@ -9,7 +9,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char ac
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act); /*窗口标题栏代码*/
-void console_task(struct SHEET *sheet);
+void console_task(struct SHEET *sheet, unsigned int memtotal);
 int cons_newline(int cursor_y, struct SHEET *sheet); /*达到最后一行自动滚动*/
 struct FILEINFO
 {
@@ -93,7 +93,7 @@ void HariMain(void)
 	task_cons->tss.fs = 1 * 8;
 	task_cons->tss.gs = 1 * 8;
 	*((int *)(task_cons->tss.esp + 4)) = (int)sht_cons;
-	*((int *)(task_cons->tss.esp + 8)) = memtotal; /*同样的方法骗过cpu,将memtotal传送到console*/
+	*((int *)(task_cons->tss.esp + 8)) = memtotal; /*同样的方法骗过cpu,将memtotal传送到console_task作为参数*/
 	task_run(task_cons, 2, 2);
 
 	/*sht_win*/
@@ -441,7 +441,7 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
 	return;
 }
 
-void console_task(struct SHEET *sheet)
+void console_task(struct SHEET *sheet, unsigned int memtotal)
 {
 	struct TIMER *timer;
 	struct TASK *task = task_now();
@@ -516,10 +516,10 @@ void console_task(struct SHEET *sheet)
 					cursor_y = cons_newline(cursor_y, sheet);
 					if (strcmp(cmdline, "mem") == 0) /*mem命令*/
 					{
-						sprintf(s, "total	%dMB", memman_total(memman) / (1024 * 1024));
+						sprintf(s, "total   %dMB", memtotal / (1024 * 1024));
 						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
 						cursor_y = cons_newline(cursor_y, sheet);
-						sprintf(s, "free	%dKB", memman_total(memman) / 1024);
+						sprintf(s, "free %dKB", memman_total(memman) / 1024);
 						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
 						cursor_y = cons_newline(cursor_y, sheet);
 						cursor_y = cons_newline(cursor_y, sheet);
@@ -536,7 +536,7 @@ void console_task(struct SHEET *sheet)
 						sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
 						cursor_y = 28; /*回到顶行*/
 					}
-					else if (strcmp(cmdline, "dir") == 0)
+					else if (strcmp(cmdline, "dir") == 0 || strcmp(cmdline, "ls") == 0)
 					{
 						for (x = 0; x < 224; x++)
 						{
