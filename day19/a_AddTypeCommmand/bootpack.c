@@ -1,4 +1,4 @@
-/* bootpack�̃��C�� */
+/* bootpack.c */
 
 #include "bootpack.h"
 #include <stdio.h>
@@ -451,7 +451,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	struct TIMER *timer;
 	struct TASK *task = task_now();
 	int i, fifobuf[128], cursor_x = 16, cursor_y = 28, cursor_c = -1;
-	char s[30], cmdline[30];
+	char s[30], cmdline[30], *p;
 	struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
 	int x, y;
 	struct FILEINFO *finfo = (struct FILEINFO *)(ADR_DISKIMG + 0x002600);
@@ -547,12 +547,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					}
 					else if (strcmp(cmdline, "dir") == 0 || strcmp(cmdline, "ls") == 0) /* dir命令 */
 					{
-						for (x = 0; x < 224; x++)
+						if (x < 224 && finfo[x].name[0] != 0x00)
 						{
-							if (finfo[x].name[0] == 0x00)
-							{
-								break;
-							}
 							if (finfo[x].name[0] != 0xe5)
 							{
 								if ((finfo[x].type & 0x18) == 0)
@@ -569,6 +565,78 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 									cursor_y = cons_newline(cursor_y, sheet);
 								}
 							}
+							for (x = 0; x < y; x++)
+							{
+								s[0] = p[x];
+							}
+						}
+						cursor_y = cons_newline(cursor_y, sheet);
+					}
+					else if (strncmp(cmdline, "type", 5) == 0) /*type命令(仅比较前五个字符)*/
+					{
+						for (y = 0; y < 11; y++)
+						{
+							s[y] = ' ';
+						}
+						y = 0;
+						for (x = 5; y = 11 && cmdline[x] != 0; x++)
+						{
+							if (cmdline[x] == '.' && y <= 0)
+							{
+								y = 8;
+							}
+							else
+							{
+								s[y] = cmdline[x];
+								if ('a' <= s[y] && s[y] <= 'z') /*小写改为大写*/
+								{
+									s[y] -= 0x28;
+								}
+								y++;
+							}
+						}
+						for (x = 0; x < 224;) /*搜索文件*/
+						{
+							if (finfo[x].name[0] == 0x00)
+							{
+								break;
+							}
+							if ((finfo[x].type & 0x18) == 0)
+							{
+								for (y = 0; y < 11; y++)
+								{
+									if (finfo[x].name[y] != s[y])
+									{
+										goto type_next_file;
+									}
+								}
+								break; /*找到文件*/
+							}
+						type_next_file:
+							x++;
+						}
+						if (x < 224 && finfo[x].name[0] != 0x00)
+						{
+							y = finfo[x].size;
+							p = (char *)(finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG); /*找到文件位置(每个文件相差一个扇区)*/
+							cursor_x = 8;
+							for (x = 0; x < y; x++)
+							{
+								s[0] = p[x];
+								s[1] = 0;
+								putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+								cursor_x += 8;
+								if (cursor_x == 8 + 240)
+								{
+									cursor_x = 8;
+									cursor_y = cons_newline(cursor_y, sheet);
+								}
+							}
+						}
+						else /*没有找到文件*/
+						{
+							putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "not find", 8);
+							cursor_y = cons_newline(cursor_y, sheet);
 						}
 						cursor_y = cons_newline(cursor_y, sheet);
 					}
