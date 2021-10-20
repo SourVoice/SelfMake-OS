@@ -18,7 +18,7 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
 void console_task(struct SHEET *sheet, unsigned int memtotal);
 void file_readfat(int *fat, unsigned char *img); /*磁盘映像中的FAT解压缩*/
-void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
+void file_loadfile(int clustno, int size, char *buf, int *fat, unsigned char *img);
 int cons_newline(int cursor_y, struct SHEET *sheet);
 
 #define KEYCMD_LED 0xed
@@ -457,6 +457,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
 	int x, y;
 	struct FILEINFO *finfo = (struct FILEINFO *)(ADR_DISKIMG + 0x002600);
+	int *fat = (int *)memman_alloc_4k(memman, 4 * 2800);
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
 	timer = timer_alloc();
@@ -621,7 +622,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 						if (x < 224 && finfo[x].name[0] != 0x00) /*找到文件的情况*/
 						{
 							p = (char *)memman_alloc_4k(memman, finfo[x].size);
-							file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *)(ADR_DISKIMG + 0x00));
+							file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *)(ADR_DISKIMG + 0x002600));
 							cursor_x = 8;
 							for (x = 0; x < y; x++)
 							{
@@ -663,7 +664,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 									cursor_y = cons_newline(cursor_y, sheet);
 								}
 							}
-							memman_alloc_4k(memman, (int)p, finfo[x].size);
+							memman_free_4k(memman, (int)p, finfo[x].size);
 						}
 						else /*没有找到文件*/
 						{
@@ -710,8 +711,8 @@ void file_readfat(int *fat, unsigned char *img)
 	int i, j;
 	for (i = 0; i < 2880; i += 2)
 	{
-		fat[i + 0] = (img[j + 0]) | img[j + 1] << 8 & 0xfff;
-		fat[i + 1] = (img[j + 1]) >> 4 | img[j + 2] << 4 & 0xfff;
+		fat[i + 0] = (img[j + 0] | img[j + 1] << 8) & 0xfff;
+		fat[i + 1] = (img[j + 1] >> 4 | img[j + 2] << 4) & 0xfff;
 		j += 3;
 	}
 	return;
