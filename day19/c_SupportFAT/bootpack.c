@@ -17,6 +17,8 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, i
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
 void console_task(struct SHEET *sheet, unsigned int memtotal);
+void file_readfat(int *fat, unsigned char *img); /*磁盘映像中的FAT解压缩*/
+void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
 int cons_newline(int cursor_y, struct SHEET *sheet);
 
 #define KEYCMD_LED 0xed
@@ -618,12 +620,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 						}
 						if (x < 224 && finfo[x].name[0] != 0x00) /*找到文件的情况*/
 						{
-							y = finfo[x].size;
-							p = (char *)(finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG); /*找到文件位置(每个文件相差一个扇区)*/
+							p = (char *)memman_alloc_4k(memman, finfo[x].size);
+							file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *)(ADR_DISKIMG + 0x00));
 							cursor_x = 8;
 							for (x = 0; x < y; x++)
 							{
-								s[0] = p[x];
+								s[0] = p[y];
 								s[1] = 0;
 								if (s[0] == 0x09) /*制表符*/
 								{
@@ -661,6 +663,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 									cursor_y = cons_newline(cursor_y, sheet);
 								}
 							}
+							memman_alloc_4k(memman, (int)p, finfo[x].size);
 						}
 						else /*没有找到文件*/
 						{
@@ -702,6 +705,35 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	}
 }
 
+void file_readfat(int *fat, unsigned char *img)
+{
+	int i, j;
+	for (i = 0; i < 2880; i += 2)
+	{
+		fat[i + 0] = (img[j + 0]) | img[j + 1] << 8 & 0xfff;
+		fat[i + 1] = (img[j + 1]) >> 4 | img[j + 2] << 4 & 0xfff;
+		j += 3;
+	}
+	return;
+}
+void file_loadfile(int cluston, int size, char *buf, int *fat, unsigned char *img)
+{
+	int i;
+	for (;;)
+	{
+		if (size <= 512)
+		{
+			for (i = 0; i < size; i++)
+			{
+				buf[i] = img[cluston * 512 + i];
+			}
+			break;
+		}
+		for (;;)
+		{
+		}
+	}
+}
 int cons_newline(int cursor_y, struct SHEET *sheet)
 {
 	int x, y;
