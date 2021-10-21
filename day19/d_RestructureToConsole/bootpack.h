@@ -237,3 +237,26 @@ void task_run(struct TASK *task, int level, int priority);
 void task_switch(void);
 void task_sleep(struct TASK *task);
 struct TASK *task_now(void);
+
+/*console.c*/
+
+void console_task(struct SHEET *sheet, unsigned int memtotal);
+int cons_newline(int cursor_y, struct SHEET *sheet);
+
+/*file.c*/
+struct FILEINFO /*文件信息结构体*/
+{
+	unsigned char name[8], ext[3], type;
+	char reserve[10];					/*为更多的文件信息保留*/
+	unsigned short time, date, clustno; /*clustno为簇号*/
+	unsigned int size;
+};
+void file_readfat(int *fat, unsigned char *img); /*磁盘映像中的FAT解压缩*/
+void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
+
+/*window.c*/
+
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char act);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
+void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
