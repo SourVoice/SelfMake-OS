@@ -1,4 +1,5 @@
 #include "bootpack.h"
+#include <stdio.h>
 #include <string.h>
 
 void mem_command(struct MEMMAN *memman, unsigned char memtotal, char *s, int *cursor_y, struct SHEET *sheet)
@@ -14,45 +15,9 @@ void mem_command(struct MEMMAN *memman, unsigned char memtotal, char *s, int *cu
 
 void cls_command(struct SHEET *sheet, int *cursor_y, int x, int y)
 {
-    for (y = 28; y < 28 + 128; y++)
-    {
-        for (x = 8; x < 8 + 240; x++)
-        {
-            sheet->buf[x + y * sheet->bxsize] = COL8_000000;
-        }
-    }
-    sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
-    *cursor_y = 28;
 }
 
 void dir_command(struct FILEINFO *finfo, struct SHEET *sheet, int x, int y, int *cursor_y, char *s)
-{
-    for (x = 0; x < 224; x++) /*最多224个文件信息*/
-    {
-        if (finfo[x].name[0] == 0x00) /*文件名第一个字节为0x00表示不包含任何信息*/
-        {
-            break;
-        }
-        if (finfo[x].name[0] != 0xe5) /*文件名第一个字节未0xe5表示已被删除*/
-        {
-            if ((finfo[x].type & 0x18) == 0)
-            {
-                sprintf(s, "filename.ext %7d", finfo[x].size);
-                for (y = 0; y < 8; y++)
-                {
-                    s[y] = finfo[x].name[y]; /*文件名*/
-                }
-                s[9] = finfo[x].ext[0];
-                s[10] = finfo[x].ext[1];
-                s[11] = finfo[x].ext[2];
-                putfonts8_asc_sht(sheet, 8, *cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-                *cursor_y = cons_newline(*cursor_y, sheet);
-            }
-        }
-    }
-    *cursor_y = cons_newline(*cursor_y, sheet);
-}
-void type_command()
 {
 }
 
@@ -65,6 +30,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
     int x = 0, y = 0;
     struct FILEINFO *finfo = (struct FILEINFO *)(ADR_DISKIMG + 0x002600);
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
     int *fat = (int *)memman_alloc_4k(memman, 4 * 2800);
 
     file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
@@ -108,12 +74,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                 }
                 timer_settime(timer, 50);
             }
-            if (i == 2)
-            { /*光标ON */
+            if (i == 2) /*光标ON */
+            {
                 cursor_c = COL8_FFFFFF;
             }
-            if (i == 3)
-            { /*光标OFF */
+            if (i == 3) /*光标OFF */
+            {
                 boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cursor_x, cursor_y, cursor_x + 7, cursor_y + 15);
                 cursor_c = -1;
             }
@@ -137,17 +103,54 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                     /*执行命令*/
                     if (strcmp(cmdline, "mem") == 0) /* mem命令*/
                     {
-                        mem_command(memman, memtotal, s, &cursor_y, sheet);
+                        sprintf(s, "total   %dMB", memtotal / (1024 * 1024));
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        sprintf(s, "free %dKB", memman_total(memman) / 1024);
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        cursor_y = cons_newline(cursor_y, sheet);
                     }
                     else if (strcmp(cmdline, "cls") == 0) /* cls命令*/
                     {
-                        cls_command(sheet, &cursor_y, x, y);
+                        for (y = 28; y < 28 + 128; y++)
+                        {
+                            for (x = 8; x < 8 + 240; x++)
+                            {
+                                sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+                            }
+                        }
+                        sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
+                        cursor_y = 28;
                     }
                     else if (strcmp(cmdline, "dir") == 0 || strcmp(cmdline, "ls") == 0) /* dir命令 */
                     {
-                        dir_command(finfo, sheet, x, y, &cursor_y, s);
+                        for (x = 0; x < 224; x++) /*最多224个文件信息*/
+                        {
+                            if (finfo[x].name[0] == 0x00) /*文件名第一个字节为0x00表示不包含任何信息*/
+                            {
+                                break;
+                            }
+                            if (finfo[x].name[0] != 0xe5) /*文件名第一个字节未0xe5表示已被删除*/
+                            {
+                                if ((finfo[x].type & 0x18) == 0)
+                                {
+                                    sprintf(s, "filename.ext %7d", finfo[x].size);
+                                    for (y = 0; y < 8; y++)
+                                    {
+                                        s[y] = finfo[x].name[y]; /*文件名*/
+                                    }
+                                    s[9] = finfo[x].ext[0];
+                                    s[10] = finfo[x].ext[1];
+                                    s[11] = finfo[x].ext[2];
+                                    putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
+                                    cursor_y = cons_newline(cursor_y, sheet);
+                                }
+                            }
+                        }
+                        cursor_y = cons_newline(cursor_y, sheet);
                     }
-                    else if (strncmp(cmdline, "type", 5)) /*type命令(仅比较前五个字符)*/
+                    else if (strncmp(cmdline, "type", 5) == 0) /*type命令(仅比较前五个字符)*/
                     {
                         for (y = 0; y < 11; y++)
                         {
@@ -193,6 +196,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                         }
                         if (x < 224 && finfo[x].name[0] != 0x00) /*找到文件的情况*/
                         {
+                            y = finfo[x].size;
                             p = (char *)memman_alloc_4k(memman, finfo[x].size);
                             file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *)(ADR_DISKIMG + 0x003e00)); /*解压缩写入内存*/
                             cursor_x = 8;
@@ -204,7 +208,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                                 {
                                     for (;;)
                                     {
-                                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, "", 1);
+                                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
                                         cursor_x += 8;
                                         if (cursor_x == 8 + 240)
                                         {
@@ -236,6 +240,54 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                                     }
                                 }
                             }
+                            memman_free_4k(memman, (int)p, finfo[x].size);
+                        }
+                        else /*没有找到文件*/
+                        {
+                            putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, "not find", 8);
+                            cursor_y = cons_newline(cursor_y, sheet);
+                        }
+                        cursor_y = cons_newline(cursor_y, sheet);
+                    }
+                    else if (strcmp(cmdline, "hlt") == 0)
+                    {
+                        for (y = 0; y < 11; y++)
+                        {
+                            s[y] = ' ';
+                        }
+                        s[0] = 'H';
+                        s[1] = 'L';
+                        s[2] = 'T';
+                        s[8] = 'H';
+                        s[9] = 'R';
+                        s[10] = 'B';
+
+                        for (x = 0; x < 224;) /*搜索文件*/
+                        {
+                            if (finfo[x].name[0] == 0x00)
+                            {
+                                break;
+                            }
+                            if ((finfo[x].type & 0x18) == 0)
+                            {
+                                for (y = 0; y < 11; y++)
+                                {
+                                    if (finfo[x].name[y] != s[y])
+                                    {
+                                        goto htl_next_file;
+                                    }
+                                }
+                                break; /*找到文件*/
+                            }
+                        htl_next_file:
+                            x++;
+                        }
+                        if (x < 224 && finfo[x].name[0] != 0x00) /*找到文件的情况*/
+                        {
+                            p = (char *)memman_alloc_4k(memman, finfo[x].size);
+                            file_loadfile(finfo[x].clustno, finfo[x].size, p, fat, (char *)(ADR_DISKIMG + 0x003e00)); /*解压缩写入内存*/
+                            set_segmdesc(gdt + 1003, finfo[x].size - 1, (int)p, AR_CODE32_ER);                        /*程序注册进gdt*/
+                            farjmp(0, 1003 * 8);
                             memman_free_4k(memman, (int)p, finfo[x].size);
                         }
                         else /*没有找到文件*/
