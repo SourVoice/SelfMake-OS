@@ -730,10 +730,15 @@ void file_loadfile(int cluston, int size, char *buf, int *fat, unsigned char *im
 			}
 			break;
 		}
-		for (;;)
+		for (i = 0; i < 512; i++)
 		{
+			buf[i] = img[cluston * 512 + i];
 		}
+		size -= 512;
+		buf += 512;
+		cluston = fat[cluston];
 	}
+	return;
 }
 int cons_newline(int cursor_y, struct SHEET *sheet)
 {
