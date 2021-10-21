@@ -150,7 +150,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                         }
                         cursor_y = cons_newline(cursor_y, sheet);
                     }
-                    else if (strncmp(cmdline, "type", 5) == 0) /*type命令(仅比较前五个字符)*/
+                    else if (strncmp(cmdline, "type ", 5) == 0) /*type命令(仅比较前五个字符)*/
                     {
                         for (y = 0; y < 11; y++)
                         {
