@@ -103,13 +103,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                     /*÷¥––√¸¡Ó*/
                     if (strcmp(cmdline, "mem") == 0) /* mem√¸¡Ó*/
                     {
-                        sprintf(s, "total   %dMB", memtotal / (1024 * 1024));
-                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-                        cursor_y = cons_newline(cursor_y, sheet);
-                        sprintf(s, "free %dKB", memman_total(memman) / 1024);
-                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
-                        cursor_y = cons_newline(cursor_y, sheet);
-                        cursor_y = cons_newline(cursor_y, sheet);
+                        mem_command(memman, memtotal, s, &cursor_y, sheet);
                     }
                     else if (strcmp(cmdline, "cls") == 0) /* cls√¸¡Ó*/
                     {
