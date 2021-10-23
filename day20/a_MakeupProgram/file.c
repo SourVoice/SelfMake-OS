@@ -79,7 +79,7 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
             }
             return finfo + x; /*????*/
         }
-    naxt:
+    next:
         x++;
     }
     return 0; /*????*/
