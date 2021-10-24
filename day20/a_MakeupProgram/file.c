@@ -1,6 +1,6 @@
 #include "bootpack.h"
 
-void file_readfat(int *fat, unsigned char *img) /*��ѹ��*/
+void file_readfat(int *fat, unsigned char *img) /*解压缩*/
 {
     int i, j = 0;
     for (i = 0; i < 2880; i += 2)
@@ -47,7 +47,7 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
     for (x = 0; name[x] != 0; x++)
     {
         if (y >= 11)
-            return 0; /*????*/
+            return 0; /*未找到*/
         if (name[x] == '.' && y <= 8)
         {
             y = 8;
@@ -62,9 +62,9 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
             y++;
         }
     }
-    for (x = 0; x < max;) /*????*/
+    for (x = 0; x < max;) /*查找*/
     {
-        if (finfo[x].name[0] == 0x00)
+        if (finfo[x].name[0] == 0x00) /*首字节为0x00表示已删除*/
         {
             break;
         }
@@ -77,10 +77,10 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
                     goto next;
                 }
             }
-            return finfo + x; /*????*/
+            return finfo + x; /*找到文件*/
         }
     next:
         x++;
     }
-    return 0; /*????*/
+    return 0; /*没有找到*/
 }
