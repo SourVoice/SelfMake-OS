@@ -16,6 +16,7 @@
 		GLOBAL	_load_tr
 		GLOBAL	_asm_inthandler20, _asm_inthandler21
 		GLOBAL	_asm_inthandler27, _asm_inthandler2c
+		GLOBAL	_asm_cons_putchar
 		GLOBAL	_memtest_sub
 		GLOBAL	_farjmp
 		EXTERN	_inthandler20, _inthandler21
@@ -208,6 +209,15 @@ mts_fin:
 		POP		EDI
 		RET
 
-_farjmp:		; void farjmp(int eip, int cs);
-		JMP    FAR [ESP+4]    ; eip, cs
+_farjmp:								; void farjmp(int eip, int cs);
+		JMP    FAR [ESP+4]    			; eip, cs
+		RET
+
+_asm_cons_putchar:
+		PUSH	1
+		AND 	EAX,0xff				;将AH和EAX的高位置置0,将EAX置为已存入字符编码的状态
+		PUSH	EAX
+		PUSH 	DWORD [0x0fec]			;读取内存并push该值
+		CALL	_cons_putchar
+		ADD 	ESP,12					;将栈中的数据丢失
 		RET
