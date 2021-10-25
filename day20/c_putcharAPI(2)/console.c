@@ -303,7 +303,7 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline)
 void cmd_hlt(struct CONSOLE *cons, int *fat)
 {
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
-    struct FILEINFO *finfo = file_search("HLT.HRB", (struct FILEINFO *)(ADR_DISKIMG + 0x002600), 244);
+    struct FILEINFO *finfo = file_search("HLT.HRB", (struct FILEINFO *)(ADR_DISKIMG + 0x002600), 224);
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
     char *p;
     if (finfo != 0)

@@ -21,6 +21,7 @@
 		GLOBAL	_farjmp
 		EXTERN	_inthandler20, _inthandler21
 		EXTERN	_inthandler27, _inthandler2c
+		EXTERN 	_cons_putchar
 
 [SECTION .text]
 
