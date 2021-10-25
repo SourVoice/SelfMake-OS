@@ -26,8 +26,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
     file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
 
     /*显示提示符*/
-    putfonts8_asc_sht(sheet, 8, 28, COL8_FFFFFF, COL8_000000, ">", 1);
     cons_putchar(&cons, '>', 1);
+
     for (;;)
     {
         io_cli();
@@ -76,32 +76,28 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                     if (cons.cur_x > 16)
                     {
                         /*用空白擦除光标后将光标前移一位*/
-                        putfonts8_asc_sht(sheet, cons.cur_x, cons.cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
+                        cons_putchar(&cons, '  ', 0);
                         cons.cur_x -= 8;
                     }
                 }
                 else if (i == 10 + 256) /*回车键*/
                 {
                     /*用空格将光标擦除*/
-                    putfonts8_asc_sht(sheet, cons.cur_x, cons.cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
+                    cons_putchar(&cons, ' ', 0);
                     cmdline[cons.cur_x / 8 - 2] = 0;
                     cons_newline(&cons);
                     /*执行命令*/
                     cons_runcmd(cmdline, &cons, fat, memtotal);
                     /*显示提示符*/
-                    putfonts8_asc_sht(sheet, 8, cons.cur_y, COL8_FFFFFF, COL8_000000, ">", 1);
-                    cons.cur_x = 16;
+                    cons_putchar(&cons, '>', 1);
                 }
                 else /*一般字符*/
                 {
                     if (cons.cur_x < 240)
                     {
                         /*显示一个字符之后将光标后移一位 */
-                        s[0] = i - 256;
-                        s[1] = 0;
                         cmdline[cons.cur_x / 8 - 2] = i - 256; /*输入内容存入cmdline*/
-                        putfonts8_asc_sht(sheet, cons.cur_x, cons.cur_y, COL8_FFFFFF, COL8_000000, s, 1);
-                        cons.cur_x += 8;
+                        cons_putchar(&cons, i - 256, i);
                     }
                 }
             }
@@ -307,13 +303,13 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline)
 void cmd_hlt(struct CONSOLE *cons, int *fat)
 {
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
-    struct FILEINFO *finfo = file_search("hlt.hrb", (struct FILEINFO *)(ADR_DISKIMG + 0x003e00), 240);
+    struct FILEINFO *finfo = file_search("HLT.HRB", (struct FILEINFO *)(ADR_DISKIMG + 0x002600), 244);
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
     char *p;
     if (finfo != 0)
     {
         p = (char *)memman_alloc_4k(memman, finfo->size);
-        file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x002600));
+        file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
         set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER);
         farjmp(0, 1003 * 8);
         memman_free_4k(memman, (int)p, finfo->size);
