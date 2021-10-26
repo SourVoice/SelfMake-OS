@@ -185,7 +185,7 @@ _asm_cons_putchar:
 		PUSH 	DWORD [0x0fec]			;读取内存并push该值
 		CALL	_cons_putchar
 		ADD 	ESP,12					;将栈中的数据丢失
-		RETF							;far-RET返回
+		IRETD							;INT指令返会命令
 
 _memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
 		PUSH	EDI						; （由于还要使用EBX, ESI, EDI）
