@@ -37,50 +37,53 @@ void file_loadfile(int cluston, int size, char *buf, int *fat, char *img)
 }
 struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
 {
-    int x, y;
+    int i, j;
     char s[12];
-    for (y = 0; y < 11; y++)
+    for (j = 0; j < 11; j++)
     {
-        s[y] = ' ';
+        s[j] = ' ';
     }
-    y = 0;
-    for (x = 0; name[x] != 0; x++)
+    j = 0;
+    for (i = 0; name[i] != 0; i++)
     {
-        if (y >= 11)
-            return 0; /*未找到*/
-        if (name[x] == '.' && y <= 8)
+        if (j >= 11)
         {
-            y = 8;
+            return 0; /*没有找到*/
+        }
+        if (name[i] == '.' && j <= 8)
+        {
+            j = 8;
         }
         else
         {
-            s[y] = name[x];
-            if ('a' <= s[y] && s[y] <= 'z')
+            s[j] = name[i];
+            if ('a' <= s[j] && s[j] <= 'z')
             {
-                s[y] -= 0x20;
+                /*将小写字母转换为大写字母*/
+                s[j] -= 0x20;
             }
-            y++;
+            j++;
         }
     }
-    for (x = 0; x < max;) /*查找*/
+    for (i = 0; i < max;)
     {
-        if (finfo[x].name[0] == 0x00) /*首字节为0x00表示已删除*/
+        if (finfo[i].name[0] == 0x00)
         {
             break;
         }
-        if ((finfo[x].type & 0x18) == 0)
+        if ((finfo[i].type & 0x18) == 0)
         {
-            for (y = 0; y < 11; y++)
+            for (j = 0; j < 11; j++)
             {
-                if (finfo[x].name[y] != s[y])
+                if (finfo[i].name[j] != s[j])
                 {
                     goto next;
                 }
             }
-            return finfo + x; /*找到文件*/
+            return finfo + i; /*找到文件*/
         }
     next:
-        x++;
+        i++;
     }
     return 0; /*没有找到*/
 }
