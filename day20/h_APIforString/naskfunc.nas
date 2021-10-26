@@ -16,13 +16,13 @@
 		GLOBAL	_load_tr
 		GLOBAL	_asm_inthandler20, _asm_inthandler21
 		GLOBAL	_asm_inthandler27, _asm_inthandler2c
-		GLOBAL	_asm_cons_putchar
+		GLOBAL	_asm_hrb_api
 		GLOBAL	_memtest_sub
 		GLOBAL	_farjmp
 		GLOBAL	_farcall
 		EXTERN	_inthandler20, _inthandler21
 		EXTERN	_inthandler27, _inthandler2c
-		EXTERN 	_cons_putchar
+		EXTERN 	_hrb_api
 
 [SECTION .text]
 
@@ -178,14 +178,12 @@ _asm_inthandler2c:
 		POP		ES
 		IRETD
 
-_asm_cons_putchar:
+_asm_hrb_api:
+		STI
 		PUSHAD							;防止cons_putchar改变ESX寄存器,将值全部置出
-		PUSH	1
-		AND 	EAX,0xff				;将AH和EAX的高位置置0,将EAX置为已存入字符编码的状态
-		PUSH	EAX
-		PUSH 	DWORD [0x0fec]			;读取内存并push该值
-		CALL	_cons_putchar
-		ADD 	ESP,12					;将栈中的数据丢失
+		PUSHAD							;向hrb_api传值
+		CALL	_hrb_api
+		ADD 	ESP,32					;将栈中的数据丢失
 		POPAD							
 		IRETD							;INT指令返会命令
 

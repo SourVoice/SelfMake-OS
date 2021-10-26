@@ -49,7 +49,10 @@ bootpack.hrb : bootpack.bim Makefile
 hello.hrb	: hello.nas Makefile
 	$(NASK) hello.nas hello.hrb hello.lst
 
-haribote.sys : asmhead.bin bootpack.hrb hello.hrb Makefile
+hello2.hrb : hello2.nas Makefile
+	$(NASK)	hello2.nas hello2.hrb hello2.lst
+
+haribote.sys : asmhead.bin bootpack.hrb hello.hrb hello2.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb haribote.sys
 
 haribote.img : ipl10.bin haribote.sys Makefile
@@ -59,6 +62,7 @@ haribote.img : ipl10.bin haribote.sys Makefile
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
 		copy from:hello.hrb to:@: \
+		copy from:hello2.hrb to:@: \
 		imgout:haribote.img
 
 # 其他指令
