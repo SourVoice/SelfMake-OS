@@ -179,12 +179,14 @@ _asm_inthandler2c:
 		IRETD
 
 _asm_cons_putchar:
+		PUSHAD							;防止cons_putchar改变ESX寄存器,将值全部置出
 		PUSH	1
 		AND 	EAX,0xff				;将AH和EAX的高位置置0,将EAX置为已存入字符编码的状态
 		PUSH	EAX
 		PUSH 	DWORD [0x0fec]			;读取内存并push该值
 		CALL	_cons_putchar
 		ADD 	ESP,12					;将栈中的数据丢失
+		POPAD							
 		IRETD							;INT指令返会命令
 
 _memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
