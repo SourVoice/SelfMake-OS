@@ -378,6 +378,10 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     {
         return &(task->tss.esp0);
     }
+    else if (edx == 123456789)
+    {
+        *((char *)0x00102600) = 0;
+    }
     return 0; //返回0程序继续运行
 }
 int *inthandler0d(int *esp)
