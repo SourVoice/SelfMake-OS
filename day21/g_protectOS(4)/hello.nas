@@ -10,6 +10,7 @@ putloop:
         ADD     ECX,1           ;+1
         JMP     putloop
 fin:
-        RETF                    ;far-call返回命令,不进行hlt
+        MOV     EDX,4
+        INT     0x40
 msg:
         DB      "hello",0
