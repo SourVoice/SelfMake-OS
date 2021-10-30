@@ -34,8 +34,6 @@ unsigned int memtest_sub(unsigned int start, unsigned int end);
 void farjmp(int eip, int cs);
 void farcall(int eip, int cs);
 void start_app(int eip, int cs, int esp, int ds);
-/*hlt.nas*/
-void hlt(void);
 
 /* fifo.c */
 struct FIFO32
