@@ -43,18 +43,26 @@ bootpack.bim : $(OBJS_BOOTPACK) Makefile
 		$(OBJS_BOOTPACK)
 # 3MB+64KB=3136KB
 
+bug1.bim : bug1.obj bug1_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bug1.bim map:bug1.map bug1.obj bug1_nask.obj
+
+bug1.hrb : bug1.bim Makefile
+	$(BIM2HRB) bug1.bim bug1.hrb 0 
+
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
 haribote.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb haribote.sys
 
-haribote.img : ipl10.bin haribote.sys Makefile 
+haribote.img : ipl10.bin haribote.sys Makefile \
+			bug1.hrb 
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
+		copy from:bug1.hrb to:@: \
 		imgout:haribote.img
 
 # 其他指令
