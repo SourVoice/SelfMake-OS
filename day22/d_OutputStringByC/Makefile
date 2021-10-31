@@ -55,6 +55,12 @@ bug3.bim : bug3.obj bug1_nask.obj Makefile
 bug3.hrb : bug3.bim Makefile
 	$(BIM2HRB) bug3.bim bug3.hrb 0
 
+hello4.bim : hello4.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:hello4.bim map:hello4.bim hello4.obj a_nask.obj
+
+hello4.hrb : hello4.bim Makefile
+	$(BIM2HRB) hello4.bim hello4.hrb 0
+
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
@@ -62,7 +68,7 @@ haribote.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb haribote.sys
 
 haribote.img : ipl10.bin haribote.sys Makefile \
-			bug1.hrb bug3.hrb
+			bug1.hrb bug3.hrb hello4.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
@@ -70,6 +76,7 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 		copy from:make.bat to:@: \
 		copy from:bug1.hrb to:@: \
 		copy from:bug3.hrb to:@: \
+		copy from:hello4.hrb to:@: \
 		imgout:haribote.img
 
 # 其他指令
