@@ -21,6 +21,7 @@ void HariMain(void)
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
 	struct TASK *task_a, *task_cons;
 	struct TIMER *timer;
+	struct CONSOEL *cons;
 	static char keytable0[0x80] = {
 		0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
 		'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0, 0, 'A', 'S',
@@ -225,6 +226,14 @@ void HariMain(void)
 					}
 					sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
 					sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
+				}
+				if (i == 256 + 0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) /*shift+f1*/
+				{
+					cons = (struct CONSOLE *)*((int *)0x0fec); /*cons的地址*/
+					cons_putstr0(cons, "\nBreak(key):\n");
+					io_cli();
+					task_cons->tss.eax = (int)&(task_cons->tss.esp0);
+					task_cons->tss.eip = (int)asm_end_app;
 				}
 				if (i == 256 + 0x2a) /*左Shift ON */
 				{

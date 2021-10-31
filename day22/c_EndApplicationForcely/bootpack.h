@@ -31,6 +31,7 @@ void asm_inthandler2c(void);
 void asm_inthandler0c(int *esp);
 void asm_inthandler0d(int *esp);
 void asm_hrb_api(void);
+void asm_end_app(void);
 unsigned int memtest_sub(unsigned int start, unsigned int end);
 void farjmp(int eip, int cs);
 void farcall(int eip, int cs);
