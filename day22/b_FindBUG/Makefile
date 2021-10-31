@@ -89,8 +89,8 @@ run :
 	-$(DEL) *.bin
 	-$(DEL) *.lst
 	-$(DEL) *.obj
-	-$(DEL) bootpack.map
-	-$(DEL) bootpack.bim
+	-$(DEL) *.map
+	-$(DEL) *.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) haribote.sys
 
