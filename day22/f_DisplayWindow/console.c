@@ -369,32 +369,39 @@ void cons_putstr1(struct CONSOLE *cons, char *s, int l)
 }
 int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax)
 {
-    int cs_base = *((int *)0xfe8);
+    int ds_base = *((int *)0xfe8);
     struct TASK *task = task_now();
-    char s[12];
-
     struct CONSOLE *cons = (struct CONSOLE *)*((int *)0x0fec); /*cons地址*/
+    struct SHTCTL *shtctl = (struct SHTCTL *)*((int *)0x0fe4); //shtctl地址
+    struct SHEET *sht;
+    char s[12];
+    int *reg = &eax + 1; //改写pushad保存的值,reg for regester
     if (edx == 1)
     {
         cons_putchar(cons, eax & 0xff, 1);
     }
     else if (edx == 2)
     {
-        cons_putstr0(cons, (char *)ebx + cs_base);
+        cons_putstr0(cons, (char *)ebx + ds_base);
         sprintf(s, "%08X\n", ebx); //字符串api调用时显示EBX的值
         cons_putstr0(cons, s);
     }
     else if (edx == 3)
     {
-        cons_putstr1(cons, (char *)ebx + cs_base, ecx);
+        cons_putstr1(cons, (char *)ebx + ds_base, ecx);
     }
     else if (edx == 4)
     {
         return &(task->tss.esp0);
     }
-    else if (edx == 123456789)
+    else if (edx == 5)
     {
-        *((char *)0x00102600) = 0;
+        sht = sheet_alloc(shtctl);
+        sheet_setbuf(sht, (char *)ebx + ds_base, esi, edi, eax); //ebx作为窗口缓冲区,esi:x方向大小;edi:y方向大小;eax:透明色
+        make_window8((char *)ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
+        sheet_slide(sht, 100, 50);
+        sheet_updown(sht, 3); //高度大于task_a
+        reg[7] = (int)sht;
     }
     return 0; //返回0程序继续运行
 }
