@@ -291,6 +291,8 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
     char *p, *q, name[18];
     int i;
+    int segsize, datsiz, esp, dathrb;
+
     struct TASK *task = task_now();
 
     for (i = 0; i < 13; i++)
@@ -318,21 +320,31 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
     if (finfo != 0) /*找到文件*/
     {
         p = (char *)memman_alloc_4k(memman, finfo->size);
-        q = (char *)memman_alloc_4k(memman, 64 * 1024);
-        *((int *)0xfe8) = (int)p; /*保存代码段地址,p为代码段基址（段起始地址）*/
         file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
-        set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER + 0x60);
-        set_segmdesc(gdt + 1004, 64 * 1024 - 1, (int)q, AR_DATA32_RW + 0x60);
-        if (finfo->size >= 8 && strncmp(p + 4, "Hari", 4) == 0) /*文件第4-7个字节位“Hari”,通过此来判断是否需要进行数据更改*/
+        if (finfo->size >= 36 && strncmp(p + 4, "Hari", 4) == 0 && *p == 0x00) //判断文件开头的内容
         {
-            start_app(0, 1003 * 8, 64 * 1024, 1004 * 8, &(task->tss.esp0)); /*不在使用retf返回所以不需要设置Hari开始的6个字节*/
+            segsize = *((int *)(p + 0x0000)); //操作系统为程序请求的数据段大小
+            esp = *((int *)(p + 0x000c));     //程序启动时的初始栈
+            datsiz = *((int *)(p + 0x0010));  //数据大小位置
+            dathrb = *((int *)(p + 0x0014));  //有效数据起始地址
+            q = (char *)memman_alloc_4k(memman, segsize);
+
+            *((int *)0xfe8) = (int)q; /*保存代码段地址,q为代码段基址（段起始地址）*/
+            set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER + 0x60);
+            set_segmdesc(gdt + 1004, segsize - 1, (int)q, AR_DATA32_RW + 0x60);
+            for (i = 0; i < datsiz; i++)
+            {
+                q[esp + i] = p[dathrb + i];
+            }
+
+            start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task->tss.esp0)); /*esp设置为栈开始处*/
+            memman_free_4k(memman, (int)q, segsize);
         }
-        else
+        else //找不到Hari标志报错
         {
-            start_app(0, 1003 * 8, 64 * 1024, 1004 * 8, &(task->tss.esp0));
+            cons_putstr0(cons, ".hrb file format error.\n");
         }
         memman_free_4k(memman, (int)p, finfo->size);
-        memman_free_4k(memman, (int)q, 64 * 1024);
         cons_newline(cons);
         return 1;
     }
@@ -359,6 +371,8 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 {
     int cs_base = *((int *)0xfe8);
     struct TASK *task = task_now();
+    char s[12];
+
     struct CONSOLE *cons = (struct CONSOLE *)*((int *)0x0fec); /*cons地址*/
     if (edx == 1)
     {
@@ -367,6 +381,8 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     else if (edx == 2)
     {
         cons_putstr0(cons, (char *)ebx + cs_base);
+        sprintf(s, "%08X\n", ebx); //字符串api调用时显示EBX的值
+        cons_putstr0(cons, s);
     }
     else if (edx == 3)
     {
