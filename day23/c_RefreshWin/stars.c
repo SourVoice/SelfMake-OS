@@ -3,6 +3,7 @@ void api_boxfillwin(int win, int x0, int y0, int x1, int y1, int col);
 void api_initmalloc(void);
 char *api_malloc(int size);
 void api_point(int win, int x, int y, int col);
+void api_refreshwin(int win, int x0, int y, int x1, int y1);
 void api_end(void);
 int rand(void);
 void HariMain(void)
@@ -19,5 +20,6 @@ void HariMain(void)
         y = (rand() % 67) + 26;
         api_point(win, x, y, 3);
     }
+    api_refreshwin(win, 6, 26, 144, 94);
     api_end();
 }
