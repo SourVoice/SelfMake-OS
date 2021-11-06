@@ -415,6 +415,22 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
         boxfill8(sht->buf, sht->bxsize, ebp, eax, ecx, esi, edi);
         sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
     }
+    else if (edx == 8)
+    {
+        memman_init((struct MEMMAN *)(ebx + ds_base)); //ebx: memman的地址
+        ecx &= 0xfffffff0;                             //需要释放的字节数(16字节为单位)
+        memman_free((struct MEMMAN *)(ebx + ds_base), eax, ecx);
+    }
+    else if (edx == 9)
+    {
+        ecx = (ecx + 0x0f) & 0xfffffff0; //16字节为单位取整
+        reg[7] = memman_alloc((struct MEMMAN *)(ebx + ds_base), ecx);
+    }
+    else if (edx == 10)
+    {
+        ecx = (ecx + 0x0f) & 0xfffffff0;
+        memman_free((struct MEMMAN *)(ebx + ds_base), eax, ecx);
+    }
     return 0; //返回0程序继续运行
 }
 int *inthandler0c(int *esp)

@@ -80,7 +80,7 @@ winhelo2.bim : winhelo2.obj a_nask.obj Makefile
 		winhelo2.obj a_nask.obj
 
 winhelo2.hrb : winhelo2.bim Makefile
-	$(BIM2HRB) winhelo2.bim winhelo2.hrb 0
+	$(BIM2HRB) winhelo2.bim winhelo2.hrb 40
 
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0

@@ -8,6 +8,9 @@
         GLOBAL  _api_openwin        
         GLOBAL  _api_putstrwin
         GLOBAL  _api_boxfillwin
+        GLOBAL  _api_initmalloc
+        GLOBAL  _api_malloc
+        GLOBAL  _api_free
 [SECTION .text]
 
 _api_putchar:
@@ -62,20 +65,53 @@ _api_putstrwin:
         RET
 
 _api_boxfillwin:        ; void api_boxfilwin(int win, int x0, int y0, int x1, int y1, int col);
-		PUSH	EDI
-		PUSH	ESI
-		PUSH	EBP
-		PUSH	EBX
-		MOV	EDX,7
-		MOV	EBX,[ESP+20]	; win
-		MOV	EAX,[ESP+24]	; x0
-		MOV	ECX,[ESP+28]	; y0
-		MOV	ESI,[ESP+32]	; x1
-		MOV	EDI,[ESP+36]	; y1
-		MOV	EBP,[ESP+40]	; col
-		INT	0x40
-		POP	EBX
-		POP	EBP
-		POP	ESI
-		POP	EDI
-		RET  
+        PUSH	EDI
+        PUSH	ESI
+        PUSH	EBP
+        PUSH	EBX
+        MOV	EDX,7
+        MOV	EBX,[ESP+20]	; win
+        MOV	EAX,[ESP+24]	; x0
+        MOV	ECX,[ESP+28]	; y0
+        MOV	ESI,[ESP+32]	; x1
+        MOV	EDI,[ESP+36]	; y1
+        MOV	EBP,[ESP+40]	; col
+        INT	0x40
+        POP	EBX
+        POP	EBP
+        POP	ESI
+        POP	EDI
+        RET 
+
+_api_initmalloc:
+        PUSH    EBX
+        MOV     EDX,8
+        MOV     EBX,[CS:0x0020]         ;malloc内存空间地址
+        MOV     EAX,EBX
+        ADD     EAX,32*1024             ;空间分配32kb
+        MOV     ECX,[CS:0x0000]         ;数据段大小
+        SUB     ECX,EAX
+        INT     0x40
+        POP     EBX
+        RET
+
+_api_malloc:    ;char *api_malloc(int size)
+        PUSh    EBX
+        MOV     EDX,9
+        MOV     EBX,[CS:0x0020]
+        MOV     ECX,[ESP+8]
+        INT     0x40
+        POP     EBX
+        RET
+
+_api_free:      ;void api_free(char*addr,int size)
+        PUSh    EBX
+        MOV     EDX,10
+        MOV     EBX,[CS:0x0020]
+        MOV     EAX,[ESP+8]             ;addr
+        MOV     ECX,[ESP+12]            ;size
+        INT     0x40
+        POP     EBX
+        RET
+
+
