@@ -236,6 +236,10 @@ void HariMain(void)
 					task_cons->tss.eax = (int)&(task_cons->tss.esp0);
 					task_cons->tss.eip = (int)asm_end_app;
 				}
+				if(i==256+0x57&&shtctl->top>2)/*F11*/
+				{
+					sheet_updown(shtctl->sheets[1],shtctl->top-1);/*窗口高度设置为次于鼠标的位置*/
+				}
 				if (i == 256 + 0x2a) /*左Shift ON */
 				{
 					key_shift |= 1;
