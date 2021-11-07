@@ -21,6 +21,8 @@ void HariMain(void)
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
 	struct TASK *task_a, *task_cons;
 	struct TIMER *timer;
+	int j, x, y;
+	struct SHEET *sht;
 	struct CONSOEL *cons;
 	static char keytable0[0x80] = {
 		0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
@@ -236,9 +238,9 @@ void HariMain(void)
 					task_cons->tss.eax = (int)&(task_cons->tss.esp0);
 					task_cons->tss.eip = (int)asm_end_app;
 				}
-				if(i==256+0x57&&shtctl->top>2)/*F11*/
+				if (i == 256 + 0x57 && shtctl->top > 2) /*F11*/
 				{
-					sheet_updown(shtctl->sheets[1],shtctl->top-1);/*窗口高度设置为次于鼠标的位置*/
+					sheet_updown(shtctl->sheets[1], shtctl->top - 1); /*窗口高度设置为次于鼠标的位置*/
 				}
 				if (i == 256 + 0x2a) /*左Shift ON */
 				{
@@ -314,9 +316,23 @@ void HariMain(void)
 						my = binfo->scrny - 1;
 					}
 					sheet_slide(sht_mouse, mx, my); /* 包含sheet_refresh含sheet_refresh */
-					if ((mdec.btn & 0x01) != 0)		/* 按下左键、移动sht_win */
+					if ((mdec.btn & 0x01) != 0)		/* 按下左键,选定鼠标所指的图层 */
 					{
-						sheet_slide(sht_win, mx - 80, my - 8);
+						/*从上到下寻找鼠标所在图层*/
+						for (j = shtctl->top - 1; j > 0; j--)
+						{
+							sht = shtctl->sheets[j];
+							x = mx - sht->vx0;
+							y = my - sht->vy0;
+							if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize)
+							{
+								if (sht->buf[y * sht->bxsize + x] != sht->col_inv)
+								{
+									sheet_updown(sht, shtctl->top - 1); /*放到倒数第二个图层*/
+									break;
+								}
+							}
+						}
 					}
 				}
 			}
