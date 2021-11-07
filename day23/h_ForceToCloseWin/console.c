@@ -292,6 +292,8 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
     int i;
     int segsize, datsiz, esp, dathrb;
 
+    struct SHTCTL *shtctl;
+    struct SHEET *sht;
     struct TASK *task = task_now();
 
     for (i = 0; i < 13; i++)
@@ -335,8 +337,16 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
             {
                 q[esp + i] = p[dathrb + i];
             }
-
             start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task->tss.esp0)); /*esp设置为栈开始处*/
+            shtctl = (struct SHTCTL *)*((int *)0x0fe4);
+            for (i = 0; i < MAX_SHEETS; i++)
+            {
+                sht = &(shtctl->sheets0[i]);
+                if (sht->flags != 0 && sht->task == task) //任务遗留图层
+                {
+                    sheet_free(sht);
+                }
+            }
             memman_free_4k(memman, (int)q, segsize);
         }
         else //找不到Hari标志报错
@@ -397,6 +407,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     else if (edx == 5)
     {
         sht = sheet_alloc(shtctl);
+        sht->task = task;
         sheet_setbuf(sht, (char *)ebx + ds_base, esi, edi, eax); //ebx作为窗口缓冲区,esi:x方向大小;edi:y方向大小;eax:透明色
         make_window8((char *)ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
         sheet_slide(sht, 100, 50);
