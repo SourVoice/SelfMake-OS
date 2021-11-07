@@ -1,5 +1,6 @@
 
 int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title);
+void api_boxfillwin(int win, int x0, int y0, int x1, int y1, int col);
 void api_initmalloc(void);
 char *api_malloc(int size);
 void api_refreshwin(int win, int x0, int y0, int x1, int y1);
@@ -16,6 +17,7 @@ void HariMain(void)
     api_initmalloc();
     buf = api_malloc(160 * 100);
     win = api_openwin(buf, 160, 100, -1, "walk");
+    api_boxfillwin(win, 4, 24, 155, 95, 0);
     x = 76;
     y = 56;
     api_putstrwin(win, x, y, 3, 1, ",");
@@ -27,7 +29,7 @@ void HariMain(void)
             x -= 8;
         if (data == '6' && x < 148)
             x += 8;
-        if (data == '8' && y < 24)
+        if (data == '8' && y > 24)
             y -= 8;
         if (data == '2' && y < 80)
             y += 8;
