@@ -21,8 +21,8 @@ void HariMain(void)
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons;
 	struct TASK *task_a, *task_cons;
 	struct TIMER *timer;
-	int j, x, y;
-	struct SHEET *sht;
+	int j, x, y, mmx = -1, mmy = -1; /*j for sht's level,'mm' for move mode,记录所需的鼠标所移动的距离*/
+	struct SHEET *sht = 0;
 	struct CONSOEL *cons;
 	static char keytable0[0x80] = {
 		0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0, 0,
@@ -318,21 +318,41 @@ void HariMain(void)
 					sheet_slide(sht_mouse, mx, my); /* 包含sheet_refresh含sheet_refresh */
 					if ((mdec.btn & 0x01) != 0)		/* 按下左键,选定鼠标所指的图层 */
 					{
-						/*从上到下寻找鼠标所在图层*/
-						for (j = shtctl->top - 1; j > 0; j--)
+						if (mmx < 0) /*处于通常模式*/
 						{
-							sht = shtctl->sheets[j];
-							x = mx - sht->vx0;
-							y = my - sht->vy0;
-							if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize)
+							/*从上到下寻找鼠标所在图层*/
+							for (j = shtctl->top - 1; j > 0; j--)
 							{
-								if (sht->buf[y * sht->bxsize + x] != sht->col_inv)
+								sht = shtctl->sheets[j];
+								x = mx - sht->vx0;
+								y = my - sht->vy0;
+								if (0 <= x && x < sht->bxsize && 0 <= y && y < sht->bysize)
 								{
-									sheet_updown(sht, shtctl->top - 1); /*放到倒数第二个图层*/
-									break;
+									if (sht->buf[y * sht->bxsize + x] != sht->col_inv)
+									{
+										sheet_updown(sht, shtctl->top - 1);					   /*放到倒数第二个图层*/
+										if (3 <= x && x < sht->bxsize - 3 && 3 <= y && y < 21) /*进入窗口移动模式(鼠标位于标题栏区域)*/
+										{
+											mmx = mx;
+											mmy = my;
+										}
+										break;
+									}
 								}
 							}
 						}
+						else /*处于窗口移动模式下*/
+						{
+							x = mx - mmx; /*计算鼠标的移动距离*/
+							y = my - mmy;
+							sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
+							mmx = mx; /*更新为移动后的坐标*/
+							mmy = my;
+						}
+					}
+					else /*没有按下左键*/
+					{
+						mmx = -1; /*返回通常模式*/
 					}
 				}
 			}
