@@ -248,6 +248,7 @@ struct TASK *task_now(void);
 struct CONSOLE
 {
 	struct SHEET *sht;
+	struct TIMER *timer;
 	int cur_x, cur_y, cur_c;
 };
 void console_task(struct SHEET *sheet, unsigned int memtotal);

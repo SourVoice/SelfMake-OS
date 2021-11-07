@@ -13,6 +13,7 @@
         GLOBAL  _api_free
         GLOBAL  _api_point
         GLOBAL  _api_linewin
+        GLOBAL  _api_getkey
         GLOBAL  _api_refreshwin
         GLOBAL  _api_closewin
 [SECTION .text]
@@ -34,6 +35,7 @@ _api_putstr0:
 _api_end:
         MOV     EDX,4
         INT     0x40
+
 _api_openwin:
         PUSH    EDI
         PUSH    ESI
@@ -49,6 +51,7 @@ _api_openwin:
         POP     ESI
         POP     EDI
         RET
+        
 _api_putstrwin:
         PUSh    EDI
         PUSH    ESI
@@ -150,6 +153,12 @@ _api_linewin:           ;void api_lienwin(int win,int x0,int y0,int x1,int y1,in
         POP     EBP
         POP     ESI
         POP     EDI
+        RET
+
+_api_getkey:            ;int api_getkey(int mode)
+        MOV     EDX,15
+        MOV     EAX,[ESP+4]     ;mode
+        INT     0x40
         RET
 
 _api_refreshwin:

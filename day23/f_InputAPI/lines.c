@@ -4,6 +4,7 @@ void api_initmalloc(void);
 char *api_malloc(int size);
 void api_refreshwin(int win, int x0, int y0, int x1, int y1);
 void api_linewin(int win, int x0, int y0, int x1, int y1, int col);
+int api_getkey(int mode);
 void api_closewin(int win);
 void api_end(void);
 
@@ -19,7 +20,13 @@ void HariMain()
         api_linewin(win + 1, 8, 26, 77, i * 9 + 26, i);
         api_linewin(win + 1, 88, 26, i * 9 + 88, 89, i);
     }
+
     api_refreshwin(win, 6, 26, 154, 90);
+    for (;;)
+    {
+        if (api_getkey(1) == 0x0a) //press enter to break
+            break;
+    }
     api_closewin(win);
     api_end();
 }

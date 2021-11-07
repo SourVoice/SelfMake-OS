@@ -4,7 +4,6 @@
 
 void console_task(struct SHEET *sheet, unsigned int memtotal)
 {
-    struct TIMER *timer;
     struct TASK *task = task_now();
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
 
@@ -19,9 +18,9 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
     *((int *)0x0fec) = (int)&cons;
 
     fifo32_init(&task->fifo, 128, fifobuf, task);
-    timer = timer_alloc();
-    timer_init(timer, &task->fifo, 1);
-    timer_settime(timer, 50);
+    cons.timer = timer_alloc();
+    timer_init(cons.timer, &task->fifo, 1);
+    timer_settime(cons.timer, 50);
 
     file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
 
@@ -44,7 +43,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
             {
                 if (i != 0)
                 {
-                    timer_init(timer, &task->fifo, 0); /*下次置0 */
+                    timer_init(cons.timer, &task->fifo, 0); /*下次置0 */
                     if (cons.cur_c >= 0)
                     {
                         cons.cur_c = COL8_FFFFFF;
@@ -52,13 +51,13 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                 }
                 else
                 {
-                    timer_init(timer, &task->fifo, 1); /*下次置1 */
+                    timer_init(cons.timer, &task->fifo, 1); /*下次置1 */
                     if (cons.cur_c >= 0)
                     {
                         cons.cur_c = COL8_000000;
                     }
                 }
-                timer_settime(timer, 50);
+                timer_settime(cons.timer, 50);
             }
             if (i == 2) /*光标ON */
             {
@@ -375,6 +374,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     struct SHTCTL *shtctl = (struct SHTCTL *)*((int *)0x0fe4); //shtctl地址
     struct SHEET *sht;
     char s[12];
+    int data;
     int *reg = &eax + 1; //改写pushad保存的值,reg for regester
     if (edx == 1)
     {
@@ -457,6 +457,46 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     else if (edx == 14)
     {
         sheet_free((struct SHEET *)ebx);
+    }
+    else if (edx == 15)
+    {
+        for (;;)
+        {
+            io_cli();
+            if (fifo32_status(&task->fifo) == 0) //fifo为空,任务休眠
+            {
+                if (eax != 0)
+                {
+                    task_sleep(task);
+                }
+                else
+                {
+                    io_sti();
+                    reg[7] = -1;
+                    return 0;
+                }
+            }
+            data = fifo32_get(&task->fifo);
+            io_sti();
+            if (data <= 1)
+            {
+                timer_init(cons->timer, &task->fifo, 1); //cons->timer为专门控制光标闪烁的计时器
+                timer_settime(cons->timer, 50);
+            }
+            if (data == 2) //光标on
+            {
+                cons->cur_c = COL8_FFFFFF; //黑色
+            }
+            if (data == 3) //光标off
+            {
+                cons->cur_c = -1;
+            }
+            if (256 <= data && data <= 511) //键盘数据
+            {
+                reg[7] = data - 256;
+                return 0;
+            }
+        }
     }
     return 0; //返回0程序继续运行
 }
