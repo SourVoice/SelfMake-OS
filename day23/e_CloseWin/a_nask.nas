@@ -14,6 +14,7 @@
         GLOBAL  _api_point
         GLOBAL  _api_linewin
         GLOBAL  _api_refreshwin
+        GLOBAL  _api_closewin
 [SECTION .text]
 
 _api_putchar:
@@ -132,7 +133,7 @@ _api_point:
         POP     EDI
         RET
 
-_api_linewin:
+_api_linewin:           ;void api_lienwin(int win,int x0,int y0,int x1,int y1,int col);
         PUSH    EDI
         PUSh    ESI
         PUSH    EBP
@@ -165,4 +166,12 @@ _api_refreshwin:
         POP     EBX
         POP     ESI
         POP     EDI
+        RET
+
+_api_closewin:
+        PUSH    EBX
+        MOV     EDX,14
+        MOV     EBX,[ESP+8]     ;win
+        INT     0x40
+        POP     EBX
         RET
