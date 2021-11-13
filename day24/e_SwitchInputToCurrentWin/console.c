@@ -342,8 +342,8 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
             for (i = 0; i < MAX_SHEETS; i++)
             {
                 sht = &(shtctl->sheets0[i]);
-                if (sht->flags != 0 && sht->task == task) //任务遗留图层
-                {
+                if ((sht->flags & 0x11) == 0x11 && sht->task == task) //任务遗留图层
+                {                                                     /*找到应用程序残留窗口*/
                     sheet_free(sht);
                 }
             }
@@ -408,6 +408,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     {
         sht = sheet_alloc(shtctl);
         sht->task = task;
+        sht->flags |= 0x10;                                      //为打开的窗口启用自动关闭窗口功能
         sheet_setbuf(sht, (char *)ebx + ds_base, esi, edi, eax); //ebx作为窗口缓冲区,esi:x方向大小;edi:y方向大小;eax:透明色
         make_window8((char *)ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
         sheet_slide(sht, 100, 50);
