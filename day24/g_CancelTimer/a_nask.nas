@@ -196,7 +196,7 @@ _api_alloctimer:        ;void api_inittimer(int timer,int data)
 
 _api_inittimer:         ;void api_settimer(int timer,int data)
         PUSH    EBX
-        MOV     EDX
+        MOV     EDX,17
         MOV     EBX,[ESP+8]     ;timer
         MOV     EAX,[ESP+12]    ;data
         INT     0x40
@@ -209,12 +209,13 @@ _api_settimer:          ;void api_settimer(int timer,int time)
         MOV     EBX,[ESP+8]     ;timer
         MOV     EAX,[ESP+12]    ;time
         INT     0x40
+        POP     EBX
         RET
 
 _api_freetimer:         ;void api_freetimer(int timer);
         PUSh    EBX
         MOV     EDX,19
-        MOV     EDX,[ESP+8]     ;timer
+        MOV     EBX,[ESP+8]     ;timer
         INT     0x40
         POP     EBX
         RET

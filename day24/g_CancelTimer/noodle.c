@@ -19,12 +19,12 @@ void HariMain(void)
     buf = api_malloc(150 * 50);
     win = api_openwin(buf, 150, 50, -1, "noodle");
     timer = api_alloctimer();
-    api_inittimer(timer, 120);
+    api_inittimer(timer, 128);
     for (;;)
     {
         sprintf(s, "%5d:%02d:%02d", hour, min, sec);
         api_boxfillwin(win, 28, 27, 115, 41, 7);
-        api_putstrwin(win, 28, 27, 0, 11, 5);
+        api_putstrwin(win, 28, 27, 0, 11, s);
         api_settimer(timer, 100);
         if (api_getkey(1) != 128)
         {
