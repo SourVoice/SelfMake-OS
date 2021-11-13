@@ -158,6 +158,11 @@ run :
 	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
 	$(MAKE) -C ../z_tools/qemu
 
+
+install :
+	$(MAKE) img
+	$(IMGTOL) w a: haribote.img
+
 	-$(DEL) *.bin
 	-$(DEL) *.lst
 	-$(DEL) *.obj
@@ -165,11 +170,6 @@ run :
 	-$(DEL) *.bim
 	-$(DEL) bootpack.hrb
 	-$(DEL) haribote.sys
-
-install :
-	$(MAKE) img
-	$(IMGTOL) w a: haribote.img
-
 
 src_only :
 	$(MAKE) clean

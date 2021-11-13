@@ -76,7 +76,7 @@ void make_wtitle8(unsigned char *buf, int xsize, char *title, char act)
 void change_wtitle8(struct SHEET *sht, char act)
 {
     int x, y, xsize = sht->bxsize;
-    char c, tc_new, tc_old, tbc_new, tbc_old, *buf = sht->buf;
+    char c, tc_new, tbc_new, tc_old, tbc_old, *buf = sht->buf;
     if (act != 0)
     {
         tc_new = COL8_FFFFFF;
@@ -110,6 +110,7 @@ void change_wtitle8(struct SHEET *sht, char act)
     sheet_refresh(sht, 3, 3, xsize, 21);
     return;
 }
+
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l)
 {
     boxfill8(sht->buf, sht->bxsize, b, x, y, x + l * 8 - 1, y + 15);
