@@ -378,6 +378,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
                     sheet_free(sht); /*关闭*/
                 }
             }
+            timer_cancelall(&task->fifo); /*应用结束时所不需要的定时器全部取消*/
             memman_free_4k(memman, (int)q, segsiz);
         }
         else
@@ -537,6 +538,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     else if (edx == 16)
     {
         reg[7] = (int)timer_alloc();
+        ((struct TIMER *)reg[7])->flags2 = 1; /*应用程序请求定时器的flags2设为1*/
     }
     else if (edx == 17)
     {

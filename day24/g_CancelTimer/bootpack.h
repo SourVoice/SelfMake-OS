@@ -186,7 +186,8 @@ void sheet_free(struct SHEET *sht);
 struct TIMER
 {
 	struct TIMER *next;
-	unsigned int timeout, flags;
+	unsigned int timeout;
+	char flags, flags2; /*falgs2记录是否需要程序结束时定时器取消*/
 	struct FIFO32 *fifo;
 	int data;
 };
@@ -202,6 +203,8 @@ struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
 void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
+int timer_cancel(struct TIMER *timer);
+void timer_cancelall(struct FIFO32 *fifo);
 void inthandler20(int *esp);
 
 /* mtask.c */
@@ -286,4 +289,4 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char ac
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize, char *title, char act);
-void change_wtitle8(struct SHEET *sht, char act)
+void change_wtitle8(struct SHEET *sht, char act);

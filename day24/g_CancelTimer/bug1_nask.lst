@@ -1,0 +1,15 @@
+     1 00000000                                 [FORMAT "WCOFF"]
+     2 00000000                                 [INSTRSET "i486p"]
+     3 00000000                                 [BITS 32]
+     4 00000000                                 [FILE "bug1.nas"] 
+     5 00000000                                         GLOBAL _api_putchar
+     6 00000000                                         GLOBAL _api_end
+     7                                          [SECTION .text]
+     8 00000000                                 _api_putchar:
+     9 00000000 BA 00000001                             MOV     EDX,1
+    10 00000005 8A 44 24 04                             MOV     AL,[ESP+4]
+    11 00000009 CD 40                                   INT     0x40
+    12 0000000B C3                                      RET
+    13 0000000C                                 _api_end:
+    14 0000000C BA 00000004                             MOV     EDX,4
+    15 00000011 CD 40                                   INT     0x40       
