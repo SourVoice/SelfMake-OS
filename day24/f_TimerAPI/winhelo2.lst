@@ -1,0 +1,57 @@
+     1 00000000                                 [FORMAT "WCOFF"]
+     2 00000000                                 [INSTRSET "i486p"]
+     3 00000000                                 [OPTIMIZE 1]
+     4 00000000                                 [OPTION 1]
+     5 00000000                                 [BITS 32]
+     6 00000000                                 	EXTERN	_api_initmalloc
+     7 00000000                                 	EXTERN	_api_malloc
+     8 00000000                                 	EXTERN	_api_openwin
+     9 00000000                                 	EXTERN	_api_boxfillwin
+    10 00000000                                 	EXTERN	_api_putstrwin
+    11 00000000                                 	EXTERN	_api_end
+    12 00000000                                 [FILE "winhelo2.c"]
+    13                                          [SECTION .data]
+    14 00000000                                 LC0:
+    15 00000000 68 65 6C 6C 6F 00               	DB	"hello",0x00
+    16 00000006                                 LC1:
+    17 00000006 68 65 6C 6C 6F 20 77 6F 72 6C   	DB	"hello world",0x00
+       00000010 64 00 
+    18                                          [SECTION .text]
+    19 00000000                                 	GLOBAL	_HariMain
+    20 00000000                                 _HariMain:
+    21 00000000 55                              	PUSH	EBP
+    22 00000001 89 E5                           	MOV	EBP,ESP
+    23 00000003 56                              	PUSH	ESI
+    24 00000004 53                              	PUSH	EBX
+    25 00000005 E8 [00000000]                   	CALL	_api_initmalloc
+    26 0000000A 68 00001D4C                     	PUSH	7500
+    27 0000000F E8 [00000000]                   	CALL	_api_malloc
+    28 00000014 68 [00000000]                   	PUSH	LC0
+    29 00000019 6A FF                           	PUSH	-1
+    30 0000001B 89 C3                           	MOV	EBX,EAX
+    31 0000001D 6A 32                           	PUSH	50
+    32 0000001F 68 00000096                     	PUSH	150
+    33 00000024 50                              	PUSH	EAX
+    34 00000025 E8 [00000000]                   	CALL	_api_openwin
+    35 0000002A 6A 03                           	PUSH	3
+    36 0000002C 6A 2B                           	PUSH	43
+    37 0000002E 89 C6                           	MOV	ESI,EAX
+    38 00000030 68 0000008D                     	PUSH	141
+    39 00000035 6A 24                           	PUSH	36
+    40 00000037 6A 08                           	PUSH	8
+    41 00000039 53                              	PUSH	EBX
+    42 0000003A E8 [00000000]                   	CALL	_api_boxfillwin
+    43 0000003F 83 C4 30                        	ADD	ESP,48
+    44 00000042 68 [00000006]                   	PUSH	LC1
+    45 00000047 6A 0C                           	PUSH	12
+    46 00000049 6A 00                           	PUSH	0
+    47 0000004B 6A 1C                           	PUSH	28
+    48 0000004D 6A 1C                           	PUSH	28
+    49 0000004F 56                              	PUSH	ESI
+    50 00000050 E8 [00000000]                   	CALL	_api_putstrwin
+    51 00000055 83 C4 18                        	ADD	ESP,24
+    52 00000058 8D 65 F8                        	LEA	ESP,DWORD [-8+EBP]
+    53 0000005B 5B                              	POP	EBX
+    54 0000005C 5E                              	POP	ESI
+    55 0000005D 5D                              	POP	EBP
+    56 0000005E E9 [00000000]                   	JMP	_api_end
