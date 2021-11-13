@@ -16,6 +16,10 @@
         GLOBAL  _api_getkey
         GLOBAL  _api_refreshwin
         GLOBAL  _api_closewin
+        GLOBAL  _api_alloctimer
+        GLOBAL  _api_inittimer
+        GLOBAL  _api_settimer
+        GLOBAL  _api_freetimer
 [SECTION .text]
 
 _api_putchar:
@@ -181,6 +185,36 @@ _api_closewin:
         PUSH    EBX
         MOV     EDX,14
         MOV     EBX,[ESP+8]     ;win
+        INT     0x40
+        POP     EBX
+        RET
+
+_api_alloctimer:        ;void api_inittimer(int timer,int data)
+        MOV     EDX,16
+        INT     0x40
+        RET
+
+_api_inittimer:         ;void api_settimer(int timer,int data)
+        PUSH    EBX
+        MOV     EDX
+        MOV     EBX,[ESP+8]     ;timer
+        MOV     EAX,[ESP+12]    ;data
+        INT     0x40
+        POP     EBX
+        RET
+
+_api_settimer:          ;void api_settimer(int timer,int time)
+        PUSh    EBX
+        MOV     EDX,18
+        MOV     EBX,[ESP+8]     ;timer
+        MOV     EAX,[ESP+12]    ;time
+        INT     0x40
+        RET
+
+_api_freetimer:         ;void api_freetimer(int timer);
+        PUSh    EBX
+        MOV     EDX,19
+        MOV     EDX,[ESP+8]     ;timer
         INT     0x40
         POP     EBX
         RET
